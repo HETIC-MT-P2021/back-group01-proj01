@@ -1,9 +1,10 @@
 name: CI
-on:
-  [push]
+on: [push]
 jobs:
   ci:
     runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on
     steps:
       - uses: actions/checkout@master
 
@@ -12,5 +13,14 @@ jobs:
         with:
           go-version: "^1.14.1-alpine3.11"
 
-      - name: check version
+      - name: Check version
         run: go version
+
+      - name: Lint
+        uses: actions-contrib/golangci-lint@v1
+
+      - name: Test
+        run: go test -cover
+
+      - name: Build
+        run: GOOS=linux go build -ldflags="-s -w" -o bin/test ./main.go
