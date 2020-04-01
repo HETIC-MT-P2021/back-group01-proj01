@@ -4,23 +4,28 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"os"
 )
 
 // Connect connection to database
 func Connect() (*sql.DB, error) {
 
-	dbuser := os.Getenv("MYSQL_USER")
-	dbPassword := os.Getenv("MYSQL_PASSWORD")
-	dbName := os.Getenv("MYSQL_DATABASE")
+	const (
+		dbHost = "tcp(host.docker.internal:3306)"
+		dbName = "image_gallery"
+		dbUser = "root"
+		dbPass = "root"
+	)
 
-	dataSource := fmt.Sprintf("%s:%s@/%s", dbuser, dbPassword, dbName)
+	dsn := dbUser + ":" + dbPass + "@" + dbHost + "/" + dbName + "?charset=utf8"
+	var err error
 
-	db, err := sql.Open("mysql", dataSource)
+	db, err := sql.Open("mysql", dsn)
 
 	if err != nil {
 		return nil, err
 	}
+
+	defer db.Close()
 
 	err = db.Ping()
 

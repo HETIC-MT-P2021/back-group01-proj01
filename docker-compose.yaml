@@ -1,5 +1,17 @@
 version: "3.7"
 services:
+  db:
+    image: mysql:latest
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: root
+    volumes:
+      - "./.mysql-data/db:/var/lib/mysql"
+    networks:
+      - backend
   # Api Service
   api:
     depends_on:
@@ -9,26 +21,12 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080" 
-    restart: unless-stopped
-    networks: 
-      - backend
     volumes:
       - ./:/go:rw
-  db:
-    image: mysql:latest
-    command: --default-authentication-plugin=mysql_native_password
-    restart: always
-    env_file:
-      - .env
-    environment:
-      MYSQL_HOST: $MYSQL_HOST
-      MYSQL_PORT: $MYSQL_PORT
-      MYSQL_DATABASE: $MYSQL_DATABASE
-      MYSQL_ROOT_PASSWORD: $MYSQL_PASSWORD
-      MYSQL_USER: $MYSQL_USER
     networks:
       - backend
 
+
 networks:
   backend:
-    driver: bridge
+    driver: "bridge"
