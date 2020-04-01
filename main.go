@@ -1,14 +1,23 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-	"github.com/gorilla/handlers"
-	"image_gallery/images"
-	logger "image_gallery/logger"
-	"image_gallery/router"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/gorilla/handlers"
+
+	"image_gallery/database"
+	"image_gallery/images"
+	logger "image_gallery/logger"
+	"image_gallery/router"
+)
+
+//DbConn stores the connexion to the database
+var (
+	DbConn *sql.DB
 )
 
 func main() {
@@ -29,9 +38,15 @@ func main() {
 		Logger: customLogger,
 	})
 
+	var err error
+
+	DbConn, err = database.Connect()
+
+	customLogger.Fatalf("could not connect to db: %v", err)
+
 	muxRouter := apiRouter.Configure()
 
-	err := http.ListenAndServe(
+	err = http.ListenAndServe(
 		fmt.Sprintf(":%s", port),
 		handlers.CORS(
 			handlers.AllowCredentials(),

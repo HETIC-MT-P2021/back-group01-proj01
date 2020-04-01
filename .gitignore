@@ -468,6 +468,8 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 
+#db environment
+.env
 
 # Documentation
 AWS - Image Gallery.png
