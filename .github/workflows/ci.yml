@@ -16,8 +16,8 @@ jobs:
       - name: Check version
         run: go version
 
-      - name: Lint
-        uses: actions-contrib/golangci-lint@v1
+      - name: Format
+        uses: sjkaliski/go-github-actions/fmt@v0.5.0
 
       - name: Test
         run: go test -cover
