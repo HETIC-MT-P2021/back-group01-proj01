@@ -1,0 +1,21 @@
+version: "3.7"
+services:
+  # Api Service
+  api:
+    build:
+      context: . 
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080" 
+    restart: unless-stopped
+    env_file: 
+      - local.env
+    networks: 
+      - backend
+    volumes:
+      - ./:/go:rw
+
+networks:
+  backend:
+    driver: bridge
+
