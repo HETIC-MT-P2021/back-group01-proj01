@@ -11,8 +11,8 @@ const DefaultRouteScheme string = "http"
 
 // Router is an http router
 type Router struct {
-	Handlers    []Handler
-	Logger      *logger.Logger
+	Handlers []Handler
+	Logger   *logger.Logger
 }
 
 // Route struct defining all routes

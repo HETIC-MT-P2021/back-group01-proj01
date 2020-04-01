@@ -15,7 +15,7 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	
+
 	customLogger.Infof("Server started on port %s", port)
 	apiRouter := router.Router{
 		Logger: customLogger,
@@ -28,12 +28,8 @@ func main() {
 
 	muxRouter := apiRouter.Configure()
 
-
 	//TODO(athenais): add cors handling
 	err := http.ListenAndServe(":8080", muxRouter)
 
 	customLogger.Fatal(err)
 }
-
-
-
