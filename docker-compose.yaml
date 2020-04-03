@@ -1,17 +1,15 @@
 version: "3.7"
 services:
   db:
-    image: mysql:latest
+    image: mysql:8
+    restart: always
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: image_gallery
-      MYSQL_USER: root
-    volumes:
-      - ./docker/etc/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
-      - ./docker/etc/mysql/user.cnf:/tmp/user.cnf
-      - ./docker/data:/data
+      MYSQL_USER: 'gallery'
+      MYSQL_PASSWORD: 'gallery'
+      MYSQL_DATABASE: 'image_gallery'
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
     networks:
       - backend
 
