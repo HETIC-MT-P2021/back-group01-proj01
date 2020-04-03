@@ -1,21 +1,38 @@
 version: "3.7"
 services:
+  db:
+    image: mysql:8
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_USER: gallery
+      MYSQL_PASSWORD: gallery
+      MYSQL_DATABASE: image_gallery
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+      DB_HOST: tcp(db:3306)
+    volumes:
+      - ./docker/data:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+
   # Api Service
   api:
     build:
-      context: . 
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: ./docker/build/golang/Dockerfile
+    environment:
+      MYSQL_USER: gallery
+      MYSQL_PASSWORD: gallery
+      MYSQL_DATABASE: image_gallery
+      DB_HOST: tcp(db:3306)
     ports:
-      - "8080:8080" 
-    restart: unless-stopped
-    env_file: 
-      - local.env
-    networks: 
-      - backend
+      - "8080:8080"
     volumes:
-      - ./:/go:rw
+      - ./app:/go:rw
+    networks:
+      - backend
 
 networks:
   backend:
-    driver: bridge
-
+    driver: "bridge"

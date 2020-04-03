@@ -1,7 +1,9 @@
 # Dockerfile References: https://docs.docker.com/engine/reference/builder/
 
 # Start from golang:1.12-alpine base image
-FROM golang:1.14.1-alpine3.11
+FROM golang:1.14.1-alpine3.11 as builder
+
+ENV GO111MODULE=on
 
 # The latest alpine images don't have some tools like (`git` and `bash`).
 # Adding git, bash and openssh to the image
@@ -11,23 +13,21 @@ RUN apk update && apk upgrade && \
 # Add Maintainer Info
 LABEL maintainer="Equipe 01 - Hetic"
 
-# Set the Current Working Directory inside the container
-WORKDIR /app
-
-# Copy go mod and sum files
-COPY go.mod go.sum ./
+WORKDIR /go/src/gallery
+COPY app/go.sum app/go.mod /go/src/gallery/
 
 # Download all dependancies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN go mod download
 
-# Copy the source from the current directory to the Working Directory inside the container
-COPY . .
+COPY app /go/src/gallery/
 
 # Build the Go app
-RUN go build -o main .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o bin/gallery .
 
-# Expose port 8080 to the outside world
+FROM scratch
+
+COPY --from=builder /go/src/gallery/bin/gallery /
+
 EXPOSE 8080
 
-# Run the executable
-CMD ["./main"]
+ENTRYPOINT ["/gallery"]
