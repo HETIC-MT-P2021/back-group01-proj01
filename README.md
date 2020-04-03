@@ -98,7 +98,7 @@ This repository contains all Golang API code for the image gallery project
 * [Update an image](#update-an-image)
 * [Delete an image](#update-an-image)
 * [Get a category by ID](#get-a-category-by-id)
-* [Get all category](#get-all-category)
+* [Get all categories](#get-all-categories)
 * [Create a new category](#create-a-new-category) 
 * [Update a category](#update-a-category)
 * [Delete a category](#delete-a-category)
