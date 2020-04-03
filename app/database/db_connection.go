@@ -8,14 +8,13 @@ import (
 	"time"
 )
 
-
 // Connect connection to database
 func Connect() (*sql.DB, error) {
-	
+
 	const (
-		dbHost = "tcp(db:3306)"
-		dbName = "image_gallery"
-		dbUser = "gallery"
+		dbHost     = "tcp(db:3306)"
+		dbName     = "image_gallery"
+		dbUser     = "gallery"
 		dbPassword = "gallery"
 	)
 

@@ -10,6 +10,8 @@ services:
       MYSQL_PASSWORD: 'gallery'
       MYSQL_DATABASE: 'image_gallery'
       MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+    volumes:
+      - ./docker/data:/docker-entrypoint-initdb.d
     networks:
       - backend
 
