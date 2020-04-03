@@ -46,7 +46,7 @@ func Connect() error {
 		dbErr = db.Ping()
 		if dbErr != nil {
 			if i < 3 {
-				logger.Infof("nope, %d retry : %v", i, dbErr)
+				logger.Infof("Db connection failed, %d retry : %v", i, dbErr)
 				time.Sleep(10 * time.Second)
 			}
 			continue
