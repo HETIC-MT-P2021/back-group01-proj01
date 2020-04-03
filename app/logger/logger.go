@@ -29,11 +29,7 @@ func GetLogger() *Logger {
 	logger.SetFormatter(&logrus.TextFormatter{})
 	logger.SetOutput(os.Stdout)
 
-	envMinLevel := os.Getenv("LOGGER_MIN_LEVEL")
-
-	if envMinLevel == "" {
-		envMinLevel = "info"
-	}
+	envMinLevel := "info"
 
 	minLevel, err := logrus.ParseLevel(envMinLevel)
 	if err != nil {

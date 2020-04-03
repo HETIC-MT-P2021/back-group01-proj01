@@ -3,22 +3,33 @@ package database
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"github.com/caarlos0/env/v6"
 	_ "github.com/go-sql-driver/mysql"
 	cLog "image_gallery/logger"
 	"time"
 )
 
+//DbConn stores the connexion to the database
+var (
+	DbConn *sql.DB
+)
+
+type Config struct {
+	DbHost     string `env:"DB_HOST"`
+	DbName     string `env:"MYSQL_DATABASE"`
+	DbUser     string `env:"MYSQL_USER"`
+	DbPassword string `env:"MYSQL_PASSWORD"`
+}
+
 // Connect connection to database
-func Connect() (*sql.DB, error) {
-
-	const (
-		dbHost     = "tcp(db:3306)"
-		dbName     = "image_gallery"
-		dbUser     = "gallery"
-		dbPassword = "gallery"
-	)
-
-	dsn := dbUser + ":" + dbPassword + "@" + dbHost + "/" + dbName + "?parseTime=true&charset=utf8"
+func Connect() error {
+	cfg := Config{}
+	if err := env.Parse(&cfg); err != nil {
+		fmt.Printf("%+v\n", err)
+	}
+	dsn := cfg.DbUser + ":" + cfg.DbPassword + "@" + cfg.DbHost + "/" + cfg.
+		DbName + "?parseTime=true&charset=utf8"
 
 	logger := cLog.GetLogger()
 
@@ -27,7 +38,7 @@ func Connect() (*sql.DB, error) {
 	db, err := sql.Open("mysql", dsn)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var dbErr error
@@ -45,8 +56,10 @@ func Connect() (*sql.DB, error) {
 	}
 
 	if dbErr != nil {
-		return nil, errors.New("can't connect to database after 3 attempts")
+		return errors.New("can't connect to database after 3 attempts")
 	}
 
-	return db, nil
+	DbConn = db
+
+	return nil
 }

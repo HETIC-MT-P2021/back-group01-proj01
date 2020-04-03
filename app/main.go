@@ -1,7 +1,7 @@
 package main
 
 import (
-	"database/sql"
+	"image_gallery/category"
 	"net/http"
 	"os"
 	"strings"
@@ -12,11 +12,6 @@ import (
 	"image_gallery/images"
 	cLog "image_gallery/logger"
 	"image_gallery/router"
-)
-
-//DbConn stores the connexion to the database
-var (
-	DbConn *sql.DB
 )
 
 func main() {
@@ -31,10 +26,11 @@ func main() {
 	apiRouter.AddHandler(&images.Handler{
 		Logger: logger,
 	})
+	apiRouter.AddHandler(&category.Handler{
+		Logger: logger,
+	})
 
-	var err error
-
-	DbConn, err = database.Connect()
+	err := database.Connect()
 
 	if err != nil {
 		logger.Fatalf("could not connect to db: %v", err)

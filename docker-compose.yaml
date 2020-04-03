@@ -6,10 +6,11 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_USER: 'gallery'
-      MYSQL_PASSWORD: 'gallery'
-      MYSQL_DATABASE: 'image_gallery'
+      MYSQL_USER: gallery
+      MYSQL_PASSWORD: gallery
+      MYSQL_DATABASE: image_gallery
       MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+      DB_HOST: tcp(db:3306)
     volumes:
       - ./docker/data:/docker-entrypoint-initdb.d
     networks:
@@ -20,6 +21,11 @@ services:
     build:
       context: ./
       dockerfile: ./docker/build/golang/Dockerfile
+    environment:
+      MYSQL_USER: gallery
+      MYSQL_PASSWORD: gallery
+      MYSQL_DATABASE: image_gallery
+      DB_HOST: tcp(db:3306)
     ports:
       - "8080:8080"
     volumes:
