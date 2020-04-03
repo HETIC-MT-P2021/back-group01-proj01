@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -11,7 +10,7 @@ import (
 
 	"image_gallery/database"
 	"image_gallery/images"
-	logger "image_gallery/logger"
+	cLog "image_gallery/logger"
 	"image_gallery/router"
 )
 
@@ -21,33 +20,28 @@ var (
 )
 
 func main() {
-	customLogger := logger.GetLogger()
+	logger := cLog.GetLogger()
 
-	port := os.Getenv("API_PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	customLogger.Infof("Server started on port %s", port)
+	logger.Info("Server started on port 8080")
 	apiRouter := router.Router{
-		Logger: customLogger,
+		Logger: logger,
 	}
 
 	// Images handler
 	apiRouter.AddHandler(&images.Handler{
-		Logger: customLogger,
+		Logger: logger,
 	})
 
 	var err error
 
 	DbConn, err = database.Connect()
 
-	customLogger.Fatalf("could not connect to db: %v", err)
+	logger.Fatalf("could not connect to db: %v", err)
 
 	muxRouter := apiRouter.Configure()
 
 	err = http.ListenAndServe(
-		fmt.Sprintf(":%s", port),
+		"8080",
 		handlers.CORS(
 			handlers.AllowCredentials(),
 			handlers.AllowedOrigins(strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")),
@@ -56,5 +50,5 @@ func main() {
 		)(muxRouter),
 	)
 
-	customLogger.Fatal(err)
+	logger.Fatal(err)
 }

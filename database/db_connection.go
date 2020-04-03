@@ -2,32 +2,49 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 	_ "github.com/go-sql-driver/mysql"
-	"os"
+	cLog "image_gallery/logger"
+	"time"
 )
+
 
 // Connect connection to database
 func Connect() (*sql.DB, error) {
+	
+	const (
+		dbHost = "tcp(localhost:3306)"
+		dbName = "image_gallery"
+		dbUser = "root"
+	)
 
-	dbuser := os.Getenv("MYSQL_USER")
-	dbPassword := os.Getenv("MYSQL_PASSWORD")
-	dbName := os.Getenv("MYSQL_DATABASE")
+	dsn := dbUser + ":" + "@" + dbHost + "/" + dbName + "?charset=utf8"
 
-	dataSource := fmt.Sprintf("%s:%s@/%s", dbuser, dbPassword, dbName)
-
-	db, err := sql.Open("mysql", dataSource)
+	db, err := sql.Open("mysql", dsn)
+	
 
 	if err != nil {
 		return nil, err
 	}
+	
+	logger := cLog.GetLogger()
 
-	err = db.Ping()
+	var dbErr error
+	for i := 1; i <= 3; i++ {
+		dbErr = db.Ping()
+		if dbErr != nil {
+			if i < 3 {
+				logger.Infof("nope, %d retry : %v", i, dbErr)
+				time.Sleep(10 * time.Second)
+			}
+			continue
+		}
 
-	fmt.Printf("db ping : %v", err)
+		break
+	}
 
-	if err != nil {
-		return nil, err
+	if dbErr != nil {
+		return nil, errors.New("can't connect to database after 3 attempts")
 	}
 
 	return db, nil

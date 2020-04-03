@@ -2,14 +2,14 @@ package images
 
 import (
 	"fmt"
-	zlog "image_gallery/logger"
+	cLog "image_gallery/logger"
 	"image_gallery/router"
 	"net/http"
 )
 
 // Handler is the home handler
 type Handler struct {
-	Logger *zlog.Logger
+	Logger *cLog.Logger
 }
 
 // Routes returns handler routes

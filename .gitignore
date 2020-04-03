@@ -470,6 +470,7 @@ MigrationBackup/
 
 #db environment
 .env
+.mysql-data
 
 # Documentation
 AWS - Image Gallery.png
