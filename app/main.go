@@ -36,12 +36,14 @@ func main() {
 
 	DbConn, err = database.Connect()
 
-	logger.Fatalf("could not connect to db: %v", err)
+	if err != nil {
+		logger.Fatalf("could not connect to db: %v", err)
+	}
 
 	muxRouter := apiRouter.Configure()
 
 	err = http.ListenAndServe(
-		"8080",
+		":8080",
 		handlers.CORS(
 			handlers.AllowCredentials(),
 			handlers.AllowedOrigins(strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")),

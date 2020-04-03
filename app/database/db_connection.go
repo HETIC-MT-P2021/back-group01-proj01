@@ -13,21 +13,23 @@ import (
 func Connect() (*sql.DB, error) {
 	
 	const (
-		dbHost = "tcp(localhost:3306)"
+		dbHost = "tcp(db:3306)"
 		dbName = "image_gallery"
-		dbUser = "root"
+		dbUser = "gallery"
+		dbPassword = "gallery"
 	)
 
-	dsn := dbUser + ":" + "@" + dbHost + "/" + dbName + "?charset=utf8"
+	dsn := dbUser + ":" + dbPassword + "@" + dbHost + "/" + dbName + "?parseTime=true"
+
+	logger := cLog.GetLogger()
+
+	logger.Infof("DSN: %s", dsn)
 
 	db, err := sql.Open("mysql", dsn)
-	
 
 	if err != nil {
 		return nil, err
 	}
-	
-	logger := cLog.GetLogger()
 
 	var dbErr error
 	for i := 1; i <= 3; i++ {

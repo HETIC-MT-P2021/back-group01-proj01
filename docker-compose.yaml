@@ -1,32 +1,29 @@
 version: "3.7"
 services:
   db:
-    image: mysql:latest
+    image: mysql:8
     restart: always
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: image_gallery
-      MYSQL_USER: root
-    volumes:
-      - "./.mysql-data/db:/var/lib/mysql"
-    networks:
-      - backend
-  # Api Service
-  api:
-    depends_on:
-      - db
-    build:
-      context: . 
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080" 
-    volumes:
-      - ./:/go:rw
+      MYSQL_USER: 'gallery'
+      MYSQL_PASSWORD: 'gallery'
+      MYSQL_DATABASE: 'image_gallery'
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
     networks:
       - backend
 
+  # Api Service
+  api:
+    build:
+      context: ./
+      dockerfile: ./docker/build/golang/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./app:/go:rw
+    networks:
+      - backend
 
 networks:
   backend:
