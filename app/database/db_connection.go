@@ -19,7 +19,7 @@ func Connect() (*sql.DB, error) {
 		dbPassword = "gallery"
 	)
 
-	dsn := dbUser + ":" + dbPassword + "@" + dbHost + "/" + dbName + "?parseTime=true"
+	dsn := dbUser + ":" + dbPassword + "@" + dbHost + "/" + dbName + "?parseTime=true&charset=utf8"
 
 	logger := cLog.GetLogger()
 
