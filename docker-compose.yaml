@@ -4,10 +4,11 @@ services:
     image: mysql:latest
     restart: always
     ports:
-      - 3306:3306
+      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: root
+      MYSQL_DATABASE: image_gallery
+      MYSQL_USER: root
     volumes:
       - "./.mysql-data/db:/var/lib/mysql"
     networks:

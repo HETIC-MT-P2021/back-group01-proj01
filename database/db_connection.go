@@ -2,37 +2,49 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 	_ "github.com/go-sql-driver/mysql"
+	cLog "image_gallery/logger"
+	"time"
 )
+
 
 // Connect connection to database
 func Connect() (*sql.DB, error) {
-
+	
 	const (
-		dbHost = "tcp(host.docker.internal:3306)"
+		dbHost = "tcp(localhost:3306)"
 		dbName = "image_gallery"
 		dbUser = "root"
-		dbPass = "root"
 	)
 
-	dsn := dbUser + ":" + dbPass + "@" + dbHost + "/" + dbName + "?charset=utf8"
-	var err error
+	dsn := dbUser + ":" + "@" + dbHost + "/" + dbName + "?charset=utf8"
 
 	db, err := sql.Open("mysql", dsn)
+	
 
 	if err != nil {
 		return nil, err
 	}
+	
+	logger := cLog.GetLogger()
 
-	defer db.Close()
+	var dbErr error
+	for i := 1; i <= 3; i++ {
+		dbErr = db.Ping()
+		if dbErr != nil {
+			if i < 3 {
+				logger.Infof("nope, %d retry : %v", i, dbErr)
+				time.Sleep(10 * time.Second)
+			}
+			continue
+		}
 
-	err = db.Ping()
+		break
+	}
 
-	fmt.Printf("db ping : %v", err)
-
-	if err != nil {
-		return nil, err
+	if dbErr != nil {
+		return nil, errors.New("can't connect to database after 3 attempts")
 	}
 
 	return db, nil
