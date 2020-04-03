@@ -20,14 +20,15 @@ func Connect() (*sql.DB, error) {
 
 	dsn := dbUser + ":" + "@" + dbHost + "/" + dbName + "?charset=utf8"
 
+	logger := cLog.GetLogger()
+
+	logger.Infof("User %s name %s pass %s", dbUser, dbName, dbHost)
+
 	db, err := sql.Open("mysql", dsn)
-	
 
 	if err != nil {
 		return nil, err
 	}
-	
-	logger := cLog.GetLogger()
 
 	var dbErr error
 	for i := 1; i <= 3; i++ {

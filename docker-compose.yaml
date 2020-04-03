@@ -2,7 +2,6 @@ version: "3.7"
 services:
   db:
     image: mysql:latest
-    restart: always
     ports:
       - "3306:3306"
     environment:
@@ -10,23 +9,23 @@ services:
       MYSQL_DATABASE: image_gallery
       MYSQL_USER: root
     volumes:
-      - "./.mysql-data/db:/var/lib/mysql"
-    networks:
-      - backend
-  # Api Service
-  api:
-    depends_on:
-      - db
-    build:
-      context: . 
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080" 
-    volumes:
-      - ./:/go:rw
+      - ./docker/etc/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./docker/etc/mysql/user.cnf:/tmp/user.cnf
+      - ./docker/data:/data
     networks:
       - backend
 
+  # Api Service
+  api:
+    build:
+      context: ./
+      dockerfile: ./docker/build/golang/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./app:/go:rw
+    networks:
+      - backend
 
 networks:
   backend:
