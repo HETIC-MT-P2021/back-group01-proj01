@@ -11,7 +11,7 @@ type Repository struct {
 	Conn *sql.DB
 }
 
-// Category struct 
+// Category struct
 type Category struct {
 	ID          int64     `json:"id"`
 	Name        string    `json:"name"`
@@ -51,6 +51,7 @@ func (repository *Repository) selectCategoryByID(id int64) (*Category, error) {
 		return nil, nil
 	}
 }
+
 // retrieveAllCategories stored in db
 func (repository *Repository) retrieveAllCategories() ([]*Category, error) {
 	rows, err := repository.Conn.Query("SELECT c.id, c.name, c.description, c.created_at, " +
@@ -111,13 +112,17 @@ func (repository *Repository) insertCategory(category *Category) (*Category, err
 // updateCategory by ID
 func (repository *Repository) updateCategory(category *Category, id int64) (*Category,
 	error) {
-	stmt, err := repository.Conn.Prepare("UPDATE category SET name=(?), description=(?)," +
+	stmt, err := repository.Conn.Prepare("UPDATE category SET name=(?), description=(?), " +
 		"updated_at=(?) WHERE id=(?)")
-
 	if err != nil {
 		return nil, err
 	}
-
+	var createdAt time.Time
+	row := repository.Conn.QueryRow("SELECT c.created_at FROM category c WHERE c.id=(?)", id)
+	if err := row.Scan(&createdAt); err != nil {
+		return nil, err
+	}
+	category.CreatedAt = createdAt
 	category.UpdatedAt = time.Now()
 
 	_, errExec := stmt.Exec(category.Name, category.Description, category.UpdatedAt, id)
@@ -128,6 +133,8 @@ func (repository *Repository) updateCategory(category *Category, id int64) (*Cat
 
 	category.ID = id
 
+	//TODO(athenais) fix created at
+
 	return category, nil
 }
 
@@ -137,6 +144,6 @@ func (repository *Repository) deleteCategory(id int64) (int64, error) {
 	res, err := repository.Conn.Exec("DELETE FROM category WHERE id=(?)", id)
 	if err != nil {
 		return 0, err
-	} 
+	}
 	return res.RowsAffected()
 }
