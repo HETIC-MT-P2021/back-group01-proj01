@@ -1,4 +1,4 @@
-package images
+package image
 
 import (
 	"fmt"
@@ -16,9 +16,9 @@ type Handler struct {
 func (h *Handler) Routes() router.Routes {
 	return []router.Route{
 		router.Route{
-			Name:        "Get all images",
+			Name:        "Get all image",
 			Method:      "GET",
-			Pattern:     "/images",
+			Pattern:     "/image",
 			HandlerFunc: h.getimages,
 		},
 	}

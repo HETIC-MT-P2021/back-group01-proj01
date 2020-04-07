@@ -5,7 +5,7 @@ FROM golang:1.14.1-alpine3.11 as builder
 
 ENV GO111MODULE=on
 
-# The latest alpine images don't have some tools like (`git` and `bash`).
+# The latest alpine image don't have some tools like (`git` and `bash`).
 # Adding git, bash and openssh to the image
 RUN apk update && apk upgrade && \
     apk add --no-cache bash git openssh
