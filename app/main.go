@@ -2,7 +2,10 @@ package main
 
 import (
 	"image_gallery/category"
+<<<<<<< HEAD
 	"image_gallery/home"
+=======
+>>>>>>> ebf8e93948946df0f48926fba8d924877b4ab983
 	"net/http"
 	"os"
 	"strings"
@@ -35,6 +38,14 @@ func main() {
 
 	// Images handler
 	apiRouter.AddHandler(&image.Handler{
+<<<<<<< HEAD
+=======
+		Logger: logger,
+	})
+
+	// Category handler
+	apiRouter.AddHandler(&category.Handler{
+>>>>>>> ebf8e93948946df0f48926fba8d924877b4ab983
 		Logger: logger,
 	})
 

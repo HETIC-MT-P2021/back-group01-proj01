@@ -106,16 +106,17 @@ func (h *Handler) createCategory(w http.ResponseWriter, r *http.Request) {
 		h.Logger.Error(err)
 		return
 	}
-
 	err = repository.insertCategory(&category)
+
 	if err != nil {
 		h.Logger.Error(err)
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to save category")
 		return
 	}
-
+	
 	h.Logger.Infof("saved category: %v", category)
 	helpers.WriteJSON(w, http.StatusOK, category)
+
 }
 
 func (h *Handler) updateCategory(w http.ResponseWriter, r *http.Request) {
@@ -135,13 +136,11 @@ func (h *Handler) updateCategory(w http.ResponseWriter, r *http.Request) {
 		h.Logger.Error(err)
 		return
 	}
-	
 	err = repository.updateCategory(&category, id)
 	if err != nil {
 		h.Logger.Error(err)
 		return
 	}
-
 	h.Logger.Infof("updated category: %v", category)
 	helpers.WriteJSON(w, http.StatusOK, category)
 }
