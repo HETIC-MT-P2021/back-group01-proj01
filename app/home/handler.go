@@ -1,4 +1,4 @@
-package images
+package home
 
 import (
 	"fmt"
@@ -16,14 +16,14 @@ type Handler struct {
 func (h *Handler) Routes() router.Routes {
 	return []router.Route{
 		router.Route{
-			Name:        "Get all images",
+			Name:        "Get all image",
 			Method:      "GET",
-			Pattern:     "/images",
-			HandlerFunc: h.getimages,
+			Pattern:     "/",
+			HandlerFunc: h.sayWelcome,
 		},
 	}
 }
 
-func (h *Handler) getimages(w http.ResponseWriter, r *http.Request) {
-	_, _ = fmt.Fprintf(w, "coucou, si si je suis une image")
+func (h *Handler) sayWelcome(w http.ResponseWriter, r *http.Request) {
+	_, _ = fmt.Fprintf(w, "Good morning, nice day for fishin' ain't it? huhu")
 }
