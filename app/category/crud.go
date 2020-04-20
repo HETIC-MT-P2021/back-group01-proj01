@@ -29,7 +29,7 @@ func (c *Category) Validate() error {
 	return nil
 }
 
-// SelectCategorytByID retrieves a product using its id
+// SelectCategoryByID retrieves a product using its id
 func (repository *Repository) SelectCategoryByID(id int64) (*Category, error) {
 	row := repository.Conn.QueryRow("SELECT c.id, c.name, c.description, "+
 		"c.created_at, c.updated_at FROM category c WHERE c.id=(?)", id)
@@ -83,7 +83,7 @@ func (repository *Repository) retrieveAllCategories() ([]*Category, error) {
 }
 
 // insertCategory posts a new category
-func (repository *Repository) insertCategory(category *Category)  error {
+func (repository *Repository) insertCategory(category *Category) error {
 	stmt, err := repository.Conn.Prepare("INSERT INTO category(name, description, created_at," +
 		" updated_at) VALUES(?,?,?,?)")
 
@@ -105,7 +105,7 @@ func (repository *Repository) insertCategory(category *Category)  error {
 	}
 
 	category.ID = lastInsertedID
-	
+
 	return nil
 }
 
@@ -133,7 +133,7 @@ func (repository *Repository) updateCategory(category *Category, id int64) error
 	category.ID = id
 
 	//TODO(athenais) fix created at
-	
+
 	return nil
 }
 

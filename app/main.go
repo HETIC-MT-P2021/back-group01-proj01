@@ -4,14 +4,14 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	
+
 	"image_gallery/category"
 	"image_gallery/database"
 	"image_gallery/home"
 	"image_gallery/image"
 	cLog "image_gallery/logger"
 	"image_gallery/router"
-	
+
 	"github.com/gorilla/handlers"
 )
 
@@ -37,7 +37,6 @@ func main() {
 	apiRouter.AddHandler(&image.Handler{
 		Logger: logger,
 	})
-	
 
 	err := database.Connect()
 

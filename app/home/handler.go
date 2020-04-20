@@ -7,7 +7,6 @@ import (
 	"net/http"
 )
 
-
 // Handler is the home handler
 type Handler struct {
 	Logger *cLog.Logger

@@ -113,7 +113,7 @@ func (h *Handler) createCategory(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to save category")
 		return
 	}
-	
+
 	h.Logger.Infof("saved category: %v", category)
 	helpers.WriteJSON(w, http.StatusOK, category)
 

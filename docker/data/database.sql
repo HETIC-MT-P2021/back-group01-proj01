@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS category (
 CREATE TABLE IF NOT EXISTS image (
     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     name VARCHAR(255),
-    slug VARCHAR(255),
+    slug VARCHAR(255) UNIQUE,
     description TEXT,
     created_at DATETIME,
     updated_at DATETIME,

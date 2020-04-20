@@ -39,7 +39,6 @@ func (h *Handler) Routes() router.Routes {
 	}
 }
 
-
 func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
 
 	muxVars := mux.Vars(r)
@@ -53,7 +52,7 @@ func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
 		h.Logger.Error(err)
 		return
 	}
-	
+
 	h.Logger.Printf("VAR %v", id)
 
 	image, err := repository.selectImageByID(id)
@@ -62,8 +61,7 @@ func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to retrieve image")
 		return
 	}
-	
-	
+
 	h.Logger.Printf("image: %v", image)
 
 	if image == nil {
@@ -71,10 +69,10 @@ func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	categoryRetrieved, err := categoryRepository.SelectCategoryByID(image.CategoryId)
+	categoryRetrieved, err := categoryRepository.SelectCategoryByID(image.CategoryID)
 
 	image.Category = categoryRetrieved
-	
+
 	h.Logger.Infof("image retrieved: %v", image)
 	helpers.WriteJSON(w, http.StatusOK, image)
 }
@@ -94,14 +92,13 @@ func (h *Handler) getAllImages(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, http.StatusOK, images)
 }
 
-
 func (h *Handler) createImage(w http.ResponseWriter, r *http.Request) {
 
 	db := database.DbConn
 	imageRepository := Repository{Conn: db}
 	categoryRepository := category.Repository{Conn: db}
 	h.Logger.Debugf("calling %v", r.URL.Path)
-	
+
 	var image Image
 	err := helpers.ReadValidateJSON(w, r, &image)
 	if err != nil {
@@ -109,18 +106,18 @@ func (h *Handler) createImage(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to read image")
 		return
 	}
-	
+
 	err = imageRepository.insertImage(&image)
 	if err != nil {
 		h.Logger.Error(err)
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to save image")
 		return
 	}
-	
-	categoryRetrieved, err := categoryRepository.SelectCategoryByID(image.CategoryId)
+
+	categoryRetrieved, err := categoryRepository.SelectCategoryByID(image.CategoryID)
 	if err != nil {
 		h.Logger.Error(err)
-		helpers.WriteErrorJSON(w, http.StatusInternalServerError, 
+		helpers.WriteErrorJSON(w, http.StatusInternalServerError,
 			"unable to retrieve image category")
 		return
 	}
@@ -147,8 +144,8 @@ func (h *Handler) createImage(w http.ResponseWriter, r *http.Request) {
 //		h.Logger.Error(err)
 //		return
 //	}
-//	
-//	
+//
+//
 //
 //	categoryUpdated, err := repository.updateCategory(&image, id)
 //	if err != nil {
