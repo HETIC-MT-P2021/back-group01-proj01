@@ -24,4 +24,4 @@ jobs:
         run: cd app && go test -cover
 
       - name: Build
-        run: GOOS=linux go build -ldflags="-s -w" -o bin/test ./main.go
+        run: cd app && GOOS=linux go build -ldflags="-s -w" -o bin/test ./main.go
