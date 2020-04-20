@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 package image
 
 import (
@@ -6,16 +5,6 @@ import (
 	"image_gallery/category"
 	"image_gallery/database"
 	"image_gallery/helpers"
-=======
-<<<<<<< HEAD:app/home/handler.go
-package home
-=======
-package image
->>>>>>> ebf8e93948946df0f48926fba8d924877b4ab983:app/image/handler.go
-
-import (
-	"fmt"
->>>>>>> ebf8e93948946df0f48926fba8d924877b4ab983
 	cLog "image_gallery/logger"
 	"image_gallery/router"
 	"net/http"
@@ -30,7 +19,6 @@ type Handler struct {
 func (h *Handler) Routes() router.Routes {
 	return []router.Route{
 		router.Route{
-<<<<<<< HEAD
 			Name:        "Get all images",
 			Method:      "GET",
 			Pattern:     "/images/{id}",
@@ -47,22 +35,11 @@ func (h *Handler) Routes() router.Routes {
 			Method:      "POST",
 			Pattern:     "/images",
 			HandlerFunc: h.createImage,
-=======
-			Name:        "Get all image",
-			Method:      "GET",
-<<<<<<< HEAD:app/home/handler.go
-			Pattern:     "/",
-			HandlerFunc: h.sayWelcome,
-=======
-			Pattern:     "/image",
-			HandlerFunc: h.getimages,
->>>>>>> ebf8e93948946df0f48926fba8d924877b4ab983:app/image/handler.go
->>>>>>> ebf8e93948946df0f48926fba8d924877b4ab983
 		},
 	}
 }
 
-<<<<<<< HEAD
+
 func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
 
 	muxVars := mux.Vars(r)
@@ -182,8 +159,3 @@ func (h *Handler) createImage(w http.ResponseWriter, r *http.Request) {
 //	h.Logger.Infof("updated category: %v", categoryUpdated)
 //	helpers.WriteJSON(w, http.StatusOK, categoryUpdated)
 //}
-=======
-func (h *Handler) sayWelcome(w http.ResponseWriter, r *http.Request) {
-	_, _ = fmt.Fprintf(w, "Good morning, nice day for fishin' ain't it? huhu")
-}
->>>>>>> ebf8e93948946df0f48926fba8d924877b4ab983

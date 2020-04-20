@@ -1,8 +1,4 @@
-<<<<<<< HEAD:app/home/handler.go
 package home
-=======
-package image
->>>>>>> ebf8e93948946df0f48926fba8d924877b4ab983:app/image/handler.go
 
 import (
 	"fmt"
@@ -10,6 +6,7 @@ import (
 	"image_gallery/router"
 	"net/http"
 )
+
 
 // Handler is the home handler
 type Handler struct {
@@ -22,13 +19,8 @@ func (h *Handler) Routes() router.Routes {
 		router.Route{
 			Name:        "Get all image",
 			Method:      "GET",
-<<<<<<< HEAD:app/home/handler.go
 			Pattern:     "/",
 			HandlerFunc: h.sayWelcome,
-=======
-			Pattern:     "/image",
-			HandlerFunc: h.getimages,
->>>>>>> ebf8e93948946df0f48926fba8d924877b4ab983:app/image/handler.go
 		},
 	}
 }
