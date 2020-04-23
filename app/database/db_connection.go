@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/caarlos0/env/v6"
+	// blank import for mysql driver
 	_ "github.com/go-sql-driver/mysql"
 	cLog "image_gallery/logger"
 	"time"
@@ -15,11 +16,13 @@ var (
 	DbConn *sql.DB
 )
 
+// Config for DB connection
 type Config struct {
 	DbHost     string `env:"DB_HOST"`
 	DbName     string `env:"MYSQL_DATABASE"`
 	DbUser     string `env:"MYSQL_USER"`
 	DbPassword string `env:"MYSQL_PASSWORD"`
+	DbConn     *sql.DB
 }
 
 // Connect connection to database
