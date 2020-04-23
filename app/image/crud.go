@@ -87,6 +87,7 @@ func (repository *Repository) retrieveAllImages() ([]*Image, error) {
 			UpdatedAt:   updatedAt,
 			CategoryID:  categoryID,
 			Category: &category.Category{
+				ID:          categoryID,
 				Name:        categoryName,
 				Description: categoryDescription,
 			},
@@ -97,7 +98,7 @@ func (repository *Repository) retrieveAllImages() ([]*Image, error) {
 	return images, nil
 }
 
-// insertCategory posts a new category
+// insertCategory posts a new image
 func (repository *Repository) insertImage(image *Image) error {
 
 	stmt, err := repository.Conn.Prepare("INSERT INTO image(name, slug, description, created_at," +
@@ -122,7 +123,7 @@ func (repository *Repository) insertImage(image *Image) error {
 		}
 	}
 
-	res, errExec := stmt.Exec(image.Name, image.Description, image.Slug, image.CreatedAt, image.UpdatedAt,
+	res, errExec := stmt.Exec(image.Name, image.Slug, image.Description, image.CreatedAt, image.UpdatedAt,
 		image.CategoryID)
 	if errExec != nil {
 		return fmt.Errorf("could not exec stmt: %v", errExec)
@@ -139,33 +140,42 @@ func (repository *Repository) insertImage(image *Image) error {
 	return nil
 }
 
-// updateCategory by ID
-func (repository *Repository) updateImage(category *Image, id int64) (*Image,
-	error) {
-	stmt, err := repository.Conn.Prepare("UPDATE category SET name=(?), description=(?), " +
+// updateImage by ID
+func (repository *Repository) updateImage(image *Image, id int64) error {
+	stmt, err := repository.Conn.Prepare("UPDATE image SET name=(?), description=(?), " +
 		"updated_at=(?) WHERE id=(?)")
 	if err != nil {
-		return nil, err
+		return err
 	}
+	var slug string
 	var createdAt time.Time
-	row := repository.Conn.QueryRow("SELECT c.created_at FROM category c WHERE c.id=?", id)
-	if err := row.Scan(&createdAt); err != nil {
-		return nil, err
+	row := repository.Conn.QueryRow(`SELECT i.slug, i.created_at FROM image i WHERE i.id=?`, id)
+	if err := row.Scan(&slug, &createdAt); err != nil {
+		return err
 	}
-	category.CreatedAt = createdAt
-	category.UpdatedAt = time.Now()
+	image.CreatedAt = createdAt
+	image.Slug = slug
+	image.UpdatedAt = time.Now()
 
-	_, errExec := stmt.Exec(category.Name, category.Description, category.UpdatedAt, id)
+	_, errExec := stmt.Exec(image.Name, image.Description, image.UpdatedAt, id)
 
 	if errExec != nil {
-		return nil, errExec
+		return errExec
 	}
 
-	category.ID = id
+	image.ID = id
 
-	//TODO(athenais) fix created at
+	return nil
+}
 
-	return category, nil
+// deleteCategory by ID
+func (repository *Repository) deleteImage(id int64) (int64, error) {
+
+	res, err := repository.Conn.Exec("DELETE FROM image WHERE id=(?)", id)
+	if err != nil {
+		return 0, err
+	}
+	return res.RowsAffected()
 }
 
 func (repository *Repository) slugExists(slug string) (bool, error) {

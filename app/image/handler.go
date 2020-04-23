@@ -36,6 +36,18 @@ func (h *Handler) Routes() router.Routes {
 			Pattern:     "/images",
 			HandlerFunc: h.createImage,
 		},
+		router.Route{
+			Name:        "Update an image",
+			Method:      "PUT",
+			Pattern:     "/images/{id}",
+			HandlerFunc: h.updateImage,
+		},
+		router.Route{
+			Name:        "Delete an image",
+			Method:      "DELETE",
+			Pattern:     "/images/{id}",
+			HandlerFunc: h.deleteImage,
+		},
 	}
 }
 
@@ -55,26 +67,26 @@ func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
 
 	h.Logger.Printf("VAR %v", id)
 
-	image, err := repository.selectImageByID(id)
+	imageSelected, err := repository.selectImageByID(id)
 	if err != nil {
 		h.Logger.Error(err)
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to retrieve image")
 		return
 	}
 
-	h.Logger.Printf("image: %v", image)
+	h.Logger.Printf("image: %v", imageSelected)
 
-	if image == nil {
-		helpers.WriteJSON(w, http.StatusNotFound, image)
+	if imageSelected == nil {
+		helpers.WriteJSON(w, http.StatusNotFound, imageSelected)
 		return
 	}
 
-	categoryRetrieved, err := categoryRepository.SelectCategoryByID(image.CategoryID)
+	categoryRetrieved, err := categoryRepository.SelectCategoryByID(imageSelected.CategoryID)
 
-	image.Category = categoryRetrieved
+	imageSelected.Category = categoryRetrieved
 
-	h.Logger.Infof("image retrieved: %v", image)
-	helpers.WriteJSON(w, http.StatusOK, image)
+	h.Logger.Infof("image retrieved: %v", imageSelected)
+	helpers.WriteJSON(w, http.StatusOK, imageSelected)
 }
 
 func (h *Handler) getAllImages(w http.ResponseWriter, r *http.Request) {
@@ -99,60 +111,78 @@ func (h *Handler) createImage(w http.ResponseWriter, r *http.Request) {
 	categoryRepository := category.Repository{Conn: db}
 	h.Logger.Debugf("calling %v", r.URL.Path)
 
-	var image Image
-	err := helpers.ReadValidateJSON(w, r, &image)
+	var imageToCreate Image
+	err := helpers.ReadValidateJSON(w, r, &imageToCreate)
 	if err != nil {
 		h.Logger.Error(err)
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to read image")
 		return
 	}
 
-	err = imageRepository.insertImage(&image)
+	err = imageRepository.insertImage(&imageToCreate)
 	if err != nil {
 		h.Logger.Error(err)
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to save image")
 		return
 	}
 
-	categoryRetrieved, err := categoryRepository.SelectCategoryByID(image.CategoryID)
+	categoryRetrieved, err := categoryRepository.SelectCategoryByID(imageToCreate.CategoryID)
 	if err != nil {
 		h.Logger.Error(err)
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError,
 			"unable to retrieve image category")
 		return
 	}
-	image.Category = categoryRetrieved
+	imageToCreate.Category = categoryRetrieved
 
-	h.Logger.Infof("saved image: %v", image)
+	h.Logger.Infof("saved image: %v", imageToCreate)
+	helpers.WriteJSON(w, http.StatusOK, imageToCreate)
+}
+
+func (h *Handler) updateImage(w http.ResponseWriter, r *http.Request) {
+	muxVars := mux.Vars(r)
+	id, err := helpers.ParseInt64(muxVars["id"])
+	if err != nil {
+		h.Logger.Error(err)
+		return
+	}
+	db := database.DbConn
+	repository := Repository{Conn: db}
+
+	var image Image
+
+	err = helpers.ReadValidateJSON(w, r, &image)
+	if err != nil {
+		h.Logger.Error(err)
+		return
+	}
+
+	err = repository.updateImage(&image, id)
+	if err != nil {
+		h.Logger.Error(err)
+		return
+	}
+
+	h.Logger.Infof("updated image: %v", image)
 	helpers.WriteJSON(w, http.StatusOK, image)
 }
 
-//func (h *Handler) updateCategory(w http.ResponseWriter, r *http.Request) {
-//	muxVars := mux.Vars(r)
-//	id, err := helpers.ParseInt64(muxVars["id"])
-//	if err != nil {
-//		h.Logger.Error(err)
-//		return
-//	}
-//	db := database.DbConn
-//	repository := Repository{Conn: db}
-//
-//	var image Image
-//
-//	err = helpers.ReadValidateJSON(w, r, &image)
-//	if err != nil {
-//		h.Logger.Error(err)
-//		return
-//	}
-//
-//
-//
-//	categoryUpdated, err := repository.updateCategory(&image, id)
-//	if err != nil {
-//		h.Logger.Error(err)
-//		return
-//	}
-//
-//	h.Logger.Infof("updated category: %v", categoryUpdated)
-//	helpers.WriteJSON(w, http.StatusOK, categoryUpdated)
-//}
+func (h *Handler) deleteImage(w http.ResponseWriter, r *http.Request) {
+	muxVars := mux.Vars(r)
+	id, err := helpers.ParseInt64(muxVars["id"])
+	if err != nil {
+		h.Logger.Error(err)
+		return
+	}
+	db := database.DbConn
+	repository := Repository{Conn: db}
+
+	rowsAffected, err := repository.deleteImage(id)
+	if err != nil {
+		h.Logger.Error(err)
+		return
+	}
+
+	h.Logger.Infof("%d image deleted with ID: %v", rowsAffected, id)
+	helpers.WriteJSON(w, http.StatusNoContent, "Image deleted")
+}
