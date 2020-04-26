@@ -20,7 +20,7 @@ func (h *Handler) Routes() router.Routes {
 		router.Route{
 			Name:        "Get an image by id",
 			Method:      "GET",
-			Pattern:     "/category/{id}",
+			Pattern:     "/categories/{id}",
 			HandlerFunc: h.getCategoryByID,
 		},
 		router.Route{
@@ -32,19 +32,19 @@ func (h *Handler) Routes() router.Routes {
 		router.Route{
 			Name:        "Post category",
 			Method:      "POST",
-			Pattern:     "/category",
+			Pattern:     "/categories",
 			HandlerFunc: h.createCategory,
 		},
 		router.Route{
 			Name:        "Update category",
 			Method:      "PUT",
-			Pattern:     "/category/{id}",
+			Pattern:     "/categories/{id}",
 			HandlerFunc: h.updateCategory,
 		},
 		router.Route{
 			Name:        "Delete category",
 			Method:      "DELETE",
-			Pattern:     "/category/{id}",
+			Pattern:     "/categories/{id}",
 			HandlerFunc: h.deleteCategory,
 		},
 	}
@@ -63,7 +63,7 @@ func (h *Handler) getCategoryByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	category, err := repository.selectCategoryByID(id)
+	category, err := repository.SelectCategoryByID(id)
 	if err != nil {
 		h.Logger.Error(err)
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to retrieve category")
@@ -72,6 +72,7 @@ func (h *Handler) getCategoryByID(w http.ResponseWriter, r *http.Request) {
 
 	if category == nil {
 		helpers.WriteJSON(w, http.StatusNotFound, category)
+		return
 	}
 
 	h.Logger.Infof("category retrieved: %v", category)
@@ -105,16 +106,17 @@ func (h *Handler) createCategory(w http.ResponseWriter, r *http.Request) {
 		h.Logger.Error(err)
 		return
 	}
+	err = repository.insertCategory(&category)
 
-	categoryPosted, err := repository.insertCategory(&category)
 	if err != nil {
 		h.Logger.Error(err)
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to save category")
 		return
 	}
 
-	h.Logger.Infof("saved category: %v", categoryPosted)
-	helpers.WriteJSON(w, http.StatusOK, categoryPosted)
+	h.Logger.Infof("saved category: %v", category)
+	helpers.WriteJSON(w, http.StatusOK, category)
+
 }
 
 func (h *Handler) updateCategory(w http.ResponseWriter, r *http.Request) {
@@ -134,15 +136,13 @@ func (h *Handler) updateCategory(w http.ResponseWriter, r *http.Request) {
 		h.Logger.Error(err)
 		return
 	}
-
-	categoryUpdated, err := repository.updateCategory(&category, id)
+	err = repository.updateCategory(&category, id)
 	if err != nil {
 		h.Logger.Error(err)
 		return
 	}
-
-	h.Logger.Infof("updated category: %v", categoryUpdated)
-	helpers.WriteJSON(w, http.StatusOK, categoryUpdated)
+	h.Logger.Infof("updated category: %v", category)
+	helpers.WriteJSON(w, http.StatusOK, category)
 }
 
 func (h *Handler) deleteCategory(w http.ResponseWriter, r *http.Request) {

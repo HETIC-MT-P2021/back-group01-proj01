@@ -1,17 +1,19 @@
 package main
 
 import (
-	"image_gallery/category"
+	"image_gallery/tag"
 	"net/http"
 	"os"
 	"strings"
 
-	"github.com/gorilla/handlers"
-
+	"image_gallery/category"
 	"image_gallery/database"
+	"image_gallery/home"
 	"image_gallery/image"
 	cLog "image_gallery/logger"
 	"image_gallery/router"
+
+	"github.com/gorilla/handlers"
 )
 
 func main() {
@@ -22,13 +24,23 @@ func main() {
 		Logger: logger,
 	}
 
-	// Images handler
-	apiRouter.AddHandler(&image.Handler{
+	// Home handler
+	apiRouter.AddHandler(&home.Handler{
 		Logger: logger,
 	})
 
 	// Category handler
 	apiRouter.AddHandler(&category.Handler{
+		Logger: logger,
+	})
+
+	// Images handler
+	apiRouter.AddHandler(&image.Handler{
+		Logger: logger,
+	})
+
+	// Tags handler
+	apiRouter.AddHandler(&tag.Handler{
 		Logger: logger,
 	})
 

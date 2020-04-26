@@ -106,7 +106,7 @@ This repository contains all Golang API code for the image gallery project
 ### Get an image by ID <a name="get-an-image-by-id"></a>
 
 ```http
-GET /image/:id       
+GET /images/1         //where 1 is the ID of the image to be retrieved
 Content-type : application/json
 ```
 ```http
@@ -114,7 +114,7 @@ HTTP/1.1 200 OK
 Content-type: application/json
 
 {
-	"id" : :id,
+	"id" : "1",
 	"name" : "cute_cat_picture.png",
 	"description : "i are developer i make computer beep boop beep beep boop",
 	"slug" : "12ERRGTEGOIUYFDFT18FFGSHH",
@@ -145,7 +145,7 @@ HTTP/1.1 200 OK
 Content-type: application/json
 
 {
-	"id" : :id,
+	"id" : 1,
 	"name" : "cute_cat_picture.png",
 	"description : "i are developer i make computer beep boop beep beep boop",
 	"slug" : "12ERRGTEGOIUYFDFT18FFGSHH",
@@ -164,7 +164,7 @@ Content-type: application/json
     ],
 },
 {
-	"id" : :id,
+	"id" : 2,
 	"name" : "cute_dog_picture.png",
 	"description : "doggo",
 	"slug" : "12ERRGTEGOIUYFDFT18FFGSHH",
@@ -182,11 +182,11 @@ Content-type: application/json
     ],
 }
 ```
-//TODO : update when file upload system is in place
+// TODO : update when file upload system is in place
 ### Post an image <a name="post-an-image"></a> 
 
 ``` http
-POST /image/new
+POST /images
 Content-type : application/json
 {
 	"name" : "cute_dog_picture.png",
@@ -208,7 +208,7 @@ HTTP/1.1 200 OK
 Content-type: application/json
 
 {
-	"id" : :id,
+	"id" : 2,
 	"name" : "cute_dog_picture.png",
 	"description : "doggo",
 	"created_at" : "2020:04:03:12:53",
@@ -231,7 +231,7 @@ Content-type: application/json
 ### Update an image <a name="update-an-image"></a>
 
 ``` http
-PUT /image/:id
+PUT /images/2
 Content-type : application/json
 {
 	"name" : "doggy",
@@ -244,7 +244,7 @@ HTTP/1.1 200 OK
 Content-type: application/json
 
 {
-	"id" : :id,
+	"id" : 2,
 	"name" : "doggy",
 	"description : "my dogoo",
 	"created_at" : "2020:04:03:12:53",
@@ -267,7 +267,7 @@ Content-type: application/json
 ### Delete an image <a name="delete-an-image"></a>
 
 ``` http
-DELETE /image/:id
+DELETE /images/2
 Content-type : application/json
 ```
 
@@ -279,7 +279,7 @@ Content-type: application/json
 ### Get a category by ID <a name="get-a-category-by-id"></a>
 
 ```http
-GET /category/:id       
+GET /categories/1      
 Content-type : application/json
 ```
 ```http
@@ -287,7 +287,7 @@ HTTP/1.1 200 OK
 Content-type: application/json
 
 {
-	"id" : :id,
+	"id" : 1,
 	"name" : "cars",
 	"description : "vroum",
 	"created_at" : "2020:04:05:15:53",
@@ -306,14 +306,14 @@ HTTP/1.1 200 OK
 Content-type: application/json
 
 {
-	"id" : :id,
+	"id" : 1,
 	"name" : "cars",
 	"description : "vroum",
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:05:15:53",
 }, 
 {
-	"id" : :id,
+	"id" : 2,
 	"name" : "animals",
 	"description : "A collection of animal images",
 	"category" : :id,
@@ -329,12 +329,11 @@ Content-type: application/json
 ### Create a new category <a name="create-a-new-category"></a>
 
 ``` http
-POST /category/new
+POST /categories
 Content-type : application/json
 {
 	"name" : "animals",
-	"description : "A collection of animal images",
-	"category" : :id,
+	"description : "A collection of animal images"
 }
 ```
 
@@ -343,7 +342,7 @@ HTTP/1.1 200 OK
 Content-type: application/json
 
 {
-	"id" : :id,
+	"id" : 2,
 	"name" : "animals",
 	"description : "A collection of animal images",
 	"created_at" : "2020:04:05:15:53",
@@ -355,7 +354,7 @@ Content-type: application/json
 ### Update a category <a name="update-a-category"></a>
 
 ``` http
-PUT /category/:id
+PUT /categories/2
 Content-type : application/json
 {
 	"name" : "memes",
@@ -368,7 +367,7 @@ HTTP/1.1 200 OK
 Content-type: application/json
 
 {
-	"id" : :id,
+	"id" : 2,
 	"name" : "memes",
 	"description : "animal memes",
 	"created_at" : "2020:04:05:15:53",
@@ -380,7 +379,7 @@ Content-type: application/json
 ### Delete a category <a name="delete-a-category"></a>
 
 ``` http
-DELETE /category/:id
+DELETE /categories/1
 Content-type : application/json
 
 ```

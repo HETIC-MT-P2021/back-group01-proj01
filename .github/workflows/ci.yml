@@ -1,12 +1,7 @@
 name: CI
-on:
-  pull_request:
-    types: [closed]
-    branches:
-      - develop
+on: push
 jobs:
   ci:
-    if: github.event.pull_request.merged
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on
@@ -26,7 +21,7 @@ jobs:
         uses: sjkaliski/go-github-actions/fmt@v0.5.0
 
       - name: Test
-        run: go test -cover
+        run: cd app && go test -cover
 
       - name: Build
-        run: GOOS=linux go build -ldflags="-s -w" -o bin/test ./main.go
+        run: cd app && GOOS=linux go build -ldflags="-s -w" -o bin/test ./main.go

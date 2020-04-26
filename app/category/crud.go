@@ -14,10 +14,10 @@ type Repository struct {
 // Category struct
 type Category struct {
 	ID          int64     `json:"id"`
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	Name        string    `json:"name,omitempty"`
+	Description string    `json:"description,omitempty"`
+	CreatedAt   time.Time `json:"created_at,omitempty"`
+	UpdatedAt   time.Time `json:"updated_at,omitempty"`
 }
 
 // Validate : interface for JSON backend validation
@@ -29,8 +29,8 @@ func (c *Category) Validate() error {
 	return nil
 }
 
-// selectCategorytByID retrieves a product using its id
-func (repository *Repository) selectCategoryByID(id int64) (*Category, error) {
+// SelectCategoryByID retrieves a product using its id
+func (repository *Repository) SelectCategoryByID(id int64) (*Category, error) {
 	row := repository.Conn.QueryRow("SELECT c.id, c.name, c.description, "+
 		"c.created_at, c.updated_at FROM category c WHERE c.id=(?)", id)
 	var name, description string
@@ -83,44 +83,43 @@ func (repository *Repository) retrieveAllCategories() ([]*Category, error) {
 }
 
 // insertCategory posts a new category
-func (repository *Repository) insertCategory(category *Category) (*Category, error) {
+func (repository *Repository) insertCategory(category *Category) error {
 	stmt, err := repository.Conn.Prepare("INSERT INTO category(name, description, created_at," +
 		" updated_at) VALUES(?,?,?,?)")
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 	category.CreatedAt = time.Now()
 	category.UpdatedAt = time.Now()
 	res, errExec := stmt.Exec(category.Name, category.Description, category.CreatedAt, category.UpdatedAt)
 
 	if errExec != nil {
-		return nil, errExec
+		return errExec
 	}
 
 	lastInsertedID, errInsert := res.LastInsertId()
 
 	if errInsert != nil {
-		return nil, errInsert
+		return errInsert
 	}
 
 	category.ID = lastInsertedID
 
-	return category, nil
+	return nil
 }
 
 // updateCategory by ID
-func (repository *Repository) updateCategory(category *Category, id int64) (*Category,
-	error) {
+func (repository *Repository) updateCategory(category *Category, id int64) error {
 	stmt, err := repository.Conn.Prepare("UPDATE category SET name=(?), description=(?), " +
 		"updated_at=(?) WHERE id=(?)")
 	if err != nil {
-		return nil, err
+		return err
 	}
 	var createdAt time.Time
 	row := repository.Conn.QueryRow("SELECT c.created_at FROM category c WHERE c.id=(?)", id)
 	if err := row.Scan(&createdAt); err != nil {
-		return nil, err
+		return err
 	}
 	category.CreatedAt = createdAt
 	category.UpdatedAt = time.Now()
@@ -128,14 +127,12 @@ func (repository *Repository) updateCategory(category *Category, id int64) (*Cat
 	_, errExec := stmt.Exec(category.Name, category.Description, category.UpdatedAt, id)
 
 	if errExec != nil {
-		return nil, errExec
+		return errExec
 	}
 
 	category.ID = id
 
-	//TODO(athenais) fix created at
-
-	return category, nil
+	return nil
 }
 
 // deleteCategory by ID

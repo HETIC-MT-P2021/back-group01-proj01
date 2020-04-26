@@ -9,12 +9,12 @@ CREATE TABLE IF NOT EXISTS category (
 CREATE TABLE IF NOT EXISTS image (
     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     name VARCHAR(255),
-    slug VARCHAR(255),
+    slug VARCHAR(255) UNIQUE,
     description TEXT,
     created_at DATETIME,
     updated_at DATETIME,
-    id_category INT, 
-    FOREIGN KEY (id_category) REFERENCES category(id)                      
+    category_id INT, 
+    FOREIGN KEY (category_id) REFERENCES category(id)                      
 );
 
 CREATE TABLE IF NOT EXISTS tag (
