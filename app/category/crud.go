@@ -132,8 +132,6 @@ func (repository *Repository) updateCategory(category *Category, id int64) error
 
 	category.ID = id
 
-	//TODO(athenais) fix created at
-
 	return nil
 }
 
