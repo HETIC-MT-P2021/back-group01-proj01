@@ -35,6 +35,18 @@ func (h *Handler) Routes() router.Routes {
 			Pattern:     "/tags",
 			HandlerFunc: h.createTag,
 		},
+		router.Route{
+			Name:        "Update a tag",
+			Method:      "PUT",
+			Pattern:     "/tags/{id}",
+			HandlerFunc: h.createTag,
+		},
+		router.Route{
+			Name:        "Delete a tag",
+			Method:      "DELETE",
+			Pattern:     "/tags/{id}",
+			HandlerFunc: h.deleteTag,
+		},
 	}
 }
 
@@ -139,6 +151,8 @@ func (h *Handler) deleteTag(w http.ResponseWriter, r *http.Request) {
 		h.Logger.Error(err)
 		return
 	}
+	h.Logger.Printf("ID : %d", id)
+
 	db := database.DbConn
 	repository := Repository{Conn: db}
 
@@ -149,5 +163,5 @@ func (h *Handler) deleteTag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.Logger.Infof("%d tag deleted with ID: %v", rowsAffected, id)
-	helpers.WriteJSON(w, http.StatusNoContent, "Category deleted")
+	helpers.WriteJSON(w, http.StatusNoContent, "Tag deleted")
 }

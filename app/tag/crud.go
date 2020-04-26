@@ -112,7 +112,7 @@ func (repository *Repository) insertTag(tag *Tag) error {
 
 // updateTag by ID
 func (repository *Repository) updateTag(tag *Tag, id int64) error {
-	stmt, err := repository.Conn.Prepare("UPDATE tag SET name=(?), description=(?), " +
+	stmt, err := repository.Conn.Prepare("UPDATE tag SET name=(?), " +
 		"updated_at=(?) WHERE id=(?)")
 	if err != nil {
 		return err
