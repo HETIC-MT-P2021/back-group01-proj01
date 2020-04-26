@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"image_gallery/category"
 	"image_gallery/helpers"
+	"log"
 	"time"
 )
 
@@ -190,4 +191,39 @@ func (repository *Repository) slugExists(slug string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// does not work for now, will debug once mysql connection debugged
+func (repository *Repository) retrieveAllImagesFromCategory(categoryID int64) ([]*Image, error) {
+	rows, err := repository.Conn.Query(`SELECT i.id, i.name, i.slug, i.description, i.created_at, i.updated_at, i.category_id
+	FROM image i 
+	WHERE i.category_id=?`, categoryID)
+	if err != nil {
+		return nil, err
+	}
+	var images []*Image
+	var id int64
+	var name, slug, description string
+	var createdAt, updatedAt time.Time
+
+	for rows.Next() {
+		var image Image
+		err = rows.Scan(&id, &name, &slug, &description, &createdAt, &updatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("could not get images : %v", err)
+		}
+		image = Image{
+			ID:          id,
+			Name:        name,
+			Slug:        slug,
+			Description: description,
+			CreatedAt:   createdAt,
+			UpdatedAt:   updatedAt,
+			CategoryID:  categoryID,
+		}
+		log.Print("image: ", image)
+		images = append(images, &image)
+	}
+
+	return images, nil
 }

@@ -7,6 +7,7 @@ import (
 	"image_gallery/helpers"
 	cLog "image_gallery/logger"
 	"image_gallery/router"
+	"log"
 	"net/http"
 )
 
@@ -47,6 +48,12 @@ func (h *Handler) Routes() router.Routes {
 			Method:      "DELETE",
 			Pattern:     "/images/{id}",
 			HandlerFunc: h.deleteImage,
+		},
+		router.Route{
+			Name:        "Get all images from a category",
+			Method:      "GET",
+			Pattern:     "/images/category/{id}",
+			HandlerFunc: h.getAllImagesFromCategory,
 		},
 	}
 }
@@ -185,4 +192,25 @@ func (h *Handler) deleteImage(w http.ResponseWriter, r *http.Request) {
 
 	h.Logger.Infof("%d image deleted with ID: %v", rowsAffected, id)
 	helpers.WriteJSON(w, http.StatusNoContent, "Image deleted")
+}
+
+func (h *Handler) getAllImagesFromCategory(w http.ResponseWriter, r *http.Request) {
+
+	muxVars := mux.Vars(r)
+	db := database.DbConn
+
+	repository := Repository{Conn: db}
+
+	id, err := helpers.ParseInt64(muxVars["id"])
+	if err != nil {
+		h.Logger.Error(err)
+		return
+	}
+
+	log.Printf("%v", id)
+
+	imagesRetrieved, err := repository.retrieveAllImagesFromCategory(id)
+
+	h.Logger.Infof("images retrieved: %v", imagesRetrieved)
+	helpers.WriteJSON(w, http.StatusOK, imagesRetrieved)
 }
