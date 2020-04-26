@@ -7,7 +7,6 @@ import (
 	"image_gallery/helpers"
 	cLog "image_gallery/logger"
 	"image_gallery/router"
-	"log"
 	"net/http"
 )
 
@@ -48,12 +47,6 @@ func (h *Handler) Routes() router.Routes {
 			Method:      "DELETE",
 			Pattern:     "/images/{id}",
 			HandlerFunc: h.deleteImage,
-		},
-		router.Route{
-			Name:        "Get all images from a category",
-			Method:      "GET",
-			Pattern:     "/images/category/{id}",
-			HandlerFunc: h.getAllImagesFromCategory,
 		},
 	}
 }
@@ -100,7 +93,26 @@ func (h *Handler) getAllImages(w http.ResponseWriter, r *http.Request) {
 	db := database.DbConn
 	repository := Repository{Conn: db}
 
-	images, err := repository.retrieveAllImages()
+	filters := make(map[filterName]interface{})
+
+	order := r.URL.Query().Get(string(filterByDateOfUpdate))
+	if order != "" {
+		filters[filterByDateOfUpdate] = order
+	}
+
+	tagID, _ := helpers.ParseInt64(r.URL.Query().Get(string(filterByTag)))
+
+	if tagID != 0 {
+		filters[filterByTag] = tagID
+	}
+
+	categoryID, _ := helpers.ParseInt64(r.URL.Query().Get(string(filterByCategory)))
+
+	if categoryID != 0 {
+		filters[filterByCategory] = categoryID
+	}
+
+	images, err := repository.retrieveAllImages(filters)
 	if err != nil {
 		h.Logger.Error(err)
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to retrieve images")
@@ -192,25 +204,4 @@ func (h *Handler) deleteImage(w http.ResponseWriter, r *http.Request) {
 
 	h.Logger.Infof("%d image deleted with ID: %v", rowsAffected, id)
 	helpers.WriteJSON(w, http.StatusNoContent, "Image deleted")
-}
-
-func (h *Handler) getAllImagesFromCategory(w http.ResponseWriter, r *http.Request) {
-
-	muxVars := mux.Vars(r)
-	db := database.DbConn
-
-	repository := Repository{Conn: db}
-
-	id, err := helpers.ParseInt64(muxVars["id"])
-	if err != nil {
-		h.Logger.Error(err)
-		return
-	}
-
-	log.Printf("%v", id)
-
-	imagesRetrieved, err := repository.retrieveAllImagesFromCategory(id)
-
-	h.Logger.Infof("images retrieved: %v", imagesRetrieved)
-	helpers.WriteJSON(w, http.StatusOK, imagesRetrieved)
 }
