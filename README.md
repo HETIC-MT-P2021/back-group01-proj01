@@ -116,7 +116,7 @@ Content-type: application/json
 {
 	"id" : "1",
 	"name" : "cute_cat_picture.png",
-	"description : "i are developer i make computer beep boop beep beep boop",
+	"description" : "i are developer i make computer beep boop beep beep boop",
 	"slug" : "12ERRGTEGOIUYFDFT18FFGSHH",
 	"format" : "png",
 	"created_at" : "2020:04:05:15:53",
@@ -137,7 +137,14 @@ Content-type: application/json
 ### Get all images <a name="get-all-images"></a>
 
 ```http
-GET /images               // can be filtered by name, creation date, tag
+GET /images     
+
+// can be filtered by update date, tag, and/or category
+
+GET /images?updated_at=asc
+GET /images?updated_at=desc
+GET /images?category=1
+GET /images?tag=1
 Content-type : application/json
 ```
 ```http
@@ -147,7 +154,7 @@ Content-type: application/json
 {
 	"id" : 1,
 	"name" : "cute_cat_picture.png",
-	"description : "i are developer i make computer beep boop beep beep boop",
+	"description" : "i are developer i make computer beep boop beep beep boop",
 	"slug" : "12ERRGTEGOIUYFDFT18FFGSHH",
 	"format" : "png",
 	"created_at" : "2020:04:05:15:53",
@@ -166,12 +173,12 @@ Content-type: application/json
 {
 	"id" : 2,
 	"name" : "cute_dog_picture.png",
-	"description : "doggo",
+	"description" : "doggo",
 	"slug" : "12ERRGTEGOIUYFDFT18FFGSHH",
 	"format" : "png",
 	"created_at" : "2020:04:03:12:53",
 	"updated_at" : "2020:04:03:12:53",
-	"category" : :id,
+	"category_id" : 1,
 	"tags" : [
         {
             "name": "dog"
@@ -190,8 +197,8 @@ POST /images
 Content-type : application/json
 {
 	"name" : "cute_dog_picture.png",
-	"description : "doggo",
-	"category" : :id,
+	"description" : "doggo",
+	"category_id" : 1,
 	"tags" : [
         {
             "name": "dog"
@@ -210,12 +217,12 @@ Content-type: application/json
 {
 	"id" : 2,
 	"name" : "cute_dog_picture.png",
-	"description : "doggo",
+	"description" : "doggo",
 	"created_at" : "2020:04:03:12:53",
 	"updated_at" : "2020:04:03:12:53",
 	"slug" : "12ESRGHUTEGO4765568",
 	"format" : "png"
-	"category" : :id,
+	"category_id" : 1,
 	"tags" : [
         {
             "name": "dog"
@@ -246,12 +253,12 @@ Content-type: application/json
 {
 	"id" : 2,
 	"name" : "doggy",
-	"description : "my dogoo",
+	"description" : "my dogoo",
 	"created_at" : "2020:04:03:12:53",
 	"updated_at" : "2020:04:04:17:28",
 	"slug" : "12ESRGHUTEGO4765568",
 	"format" : "png"
-	"category" : :id,
+	"category_id" : 1,
 	"tags" : [
         {
             "name": "dog"
@@ -289,7 +296,7 @@ Content-type: application/json
 {
 	"id" : 1,
 	"name" : "cars",
-	"description : "vroum",
+	"description" : "vroum",
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:06:08:23",
 }
@@ -298,7 +305,7 @@ Content-type: application/json
 ### Get all categories <a name="get-all-categories"></a>
 
 ```http
-GET /categories                                   // can be filtered by name, creation date 
+GET /categories                                   
 Content-type : application/json
 ```
 ```http
@@ -308,7 +315,7 @@ Content-type: application/json
 {
 	"id" : 1,
 	"name" : "cars",
-	"description : "vroum",
+	"description" : "vroum",
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:05:15:53",
 }, 
@@ -316,7 +323,7 @@ Content-type: application/json
 	"id" : 2,
 	"name" : "animals",
 	"description : "A collection of animal images",
-	"category" : :id,
+	"category_id" : 1,
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:05:15:53",
 }
@@ -369,7 +376,7 @@ Content-type: application/json
 {
 	"id" : 2,
 	"name" : "memes",
-	"description : "animal memes",
+	"description" : "animal memes",
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:06:08:23",
 }

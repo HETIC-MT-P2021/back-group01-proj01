@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"image_gallery/category"
 	"image_gallery/helpers"
-	"log"
+	"image_gallery/tag"
+	"strings"
 	"time"
 )
 
@@ -24,6 +25,7 @@ type Image struct {
 	UpdatedAt   time.Time          `json:"updated_at"`
 	CategoryID  int64              `json:"category_id"`
 	Category    *category.Category `json:"category"`
+	Tags        []*tag.Tag         `json:"tags"`
 }
 
 // Validate : interface for JSON backend validation
@@ -59,26 +61,93 @@ func (repository *Repository) selectImageByID(id int64) (*Image, error) {
 	return &image, nil
 }
 
+type filterName string
+
+const filterByDateOfUpdate filterName = "updated_at"
+const filterByTag filterName = "tag"
+const filterByCategory filterName = "category"
+
 // retrieveAllImages stored in db
-func (repository *Repository) retrieveAllImages() ([]*Image, error) {
-	rows, err := repository.Conn.Query(`SELECT i.id, i.name, i.slug, i.description, i.created_at, i.updated_at, i.category_id, c.name, c.description
-	FROM image i 
-	LEFT JOIN category c 
-	ON category_id = c.id;`)
-	if err != nil {
-		return nil, err
-	}
-	var images []*Image
+func (repository *Repository) retrieveAllImages(filters map[filterName]interface{}) ([]*Image, error) {
+
+	queryFilters := make([]string, 0)
+	queryArgs := make([]interface{}, 0)
+	queryJoins := make([]string, 0)
+	queryOrders := make([]string, 0)
+	scan := make([]interface{}, 0)
+
 	var id, categoryID int64
-	var name, slug, description, categoryName, categoryDescription string
+	var name, slug, description, categoryName, categoryDescription, tagName string
 	var createdAt, updatedAt time.Time
 
+	scan = append(scan, &id, &name, &slug, &description, &createdAt, &updatedAt, &categoryID)
+
+	queryFields := []string{
+		"i.id", "i.name", "i.slug", "i.description", "i.created_at", "i.updated_at", "i.category_id",
+	}
+
+	// Filtering lessons by date
+	if v, ok := filters[filterByDateOfUpdate]; ok {
+		if vv, ok := v.(string); ok {
+			switch vv {
+			case "asc":
+				queryOrders = append(queryOrders, "updated_at ASC")
+			case "desc":
+				queryOrders = append(queryOrders, "updated_at DESC")
+			}
+		}
+	}
+
+	if v, ok := filters[filterByCategory]; ok {
+		if vv, ok := v.(int64); ok {
+			queryFilters = append(queryFilters, "i.category_id = ?")
+			queryArgs = append(queryArgs, vv)
+			queryJoins = append(queryJoins, "INNER JOIN category c ON c.id = i.category_id")
+			queryFields = append(queryFields, "c.name AS category_name", "c.description AS"+
+				" category_description")
+			scan = append(scan, &categoryName, &categoryDescription)
+		}
+	}
+
+	if v, ok := filters[filterByTag]; ok {
+		if vv, ok := v.(int64); ok {
+			queryFilters = append(queryFilters, "t.id = ?")
+			queryArgs = append(queryArgs, vv)
+			queryJoins = append(queryJoins, "INNER JOIN image_tag it ON it.image_id = i.id"+
+				" INNER JOIN tag t ON t.id = it.tag_id")
+			queryFields = append(queryFields, "t.name AS tag_name")
+			scan = append(scan, &tagName)
+		}
+	}
+
+	query := fmt.Sprintf("SELECT %s FROM image i %s",
+		strings.Join(queryFields, ", "), strings.Join(queryJoins, "\n"))
+
+	if len(queryFilters) > 0 {
+		query += fmt.Sprintf("\nWHERE %s", strings.Join(queryFilters, "\nAND "))
+	}
+
+	if len(queryOrders) > 0 {
+		query += fmt.Sprintf("\nORDER BY %s", strings.Join(queryOrders, ", "))
+	}
+
+	fmt.Printf("QUERY :\n %s", query)
+
+	rows, err := repository.Conn.Query(query, queryArgs...)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve images: %v", err)
+	}
+
+	var images []*Image
+
 	for rows.Next() {
+
 		var image Image
-		err = rows.Scan(&id, &name, &slug, &description, &createdAt, &updatedAt, &categoryID, &categoryName, &categoryDescription)
+		err = rows.Scan(scan...)
 		if err != nil {
 			return nil, fmt.Errorf("could not get images : %v", err)
 		}
+
 		image = Image{
 			ID:          id,
 			Name:        name,
@@ -87,12 +156,19 @@ func (repository *Repository) retrieveAllImages() ([]*Image, error) {
 			CreatedAt:   createdAt,
 			UpdatedAt:   updatedAt,
 			CategoryID:  categoryID,
-			Category: &category.Category{
-				ID:          categoryID,
+		}
+
+		if categoryName != "" {
+			image.Category = &category.Category{
 				Name:        categoryName,
 				Description: categoryDescription,
-			},
+			}
 		}
+
+		if tagName != "" {
+			image.Tags = []*tag.Tag{{Name: tagName}}
+		}
+
 		images = append(images, &image)
 	}
 
@@ -107,6 +183,7 @@ func (repository *Repository) insertImage(image *Image) error {
 	if err != nil {
 		return err
 	}
+
 	image.CreatedAt = time.Now()
 	image.UpdatedAt = time.Now()
 
@@ -154,6 +231,7 @@ func (repository *Repository) updateImage(image *Image, id int64) error {
 	if err := row.Scan(&slug, &createdAt); err != nil {
 		return err
 	}
+
 	image.CreatedAt = createdAt
 	image.Slug = slug
 	image.UpdatedAt = time.Now()
@@ -191,39 +269,4 @@ func (repository *Repository) slugExists(slug string) (bool, error) {
 	}
 
 	return true, nil
-}
-
-// does not work for now, will debug once mysql connection debugged
-func (repository *Repository) retrieveAllImagesFromCategory(categoryID int64) ([]*Image, error) {
-	rows, err := repository.Conn.Query(`SELECT i.id, i.name, i.slug, i.description, i.created_at, i.updated_at, i.category_id
-	FROM image i 
-	WHERE i.category_id=?`, categoryID)
-	if err != nil {
-		return nil, err
-	}
-	var images []*Image
-	var id int64
-	var name, slug, description string
-	var createdAt, updatedAt time.Time
-
-	for rows.Next() {
-		var image Image
-		err = rows.Scan(&id, &name, &slug, &description, &createdAt, &updatedAt)
-		if err != nil {
-			return nil, fmt.Errorf("could not get images : %v", err)
-		}
-		image = Image{
-			ID:          id,
-			Name:        name,
-			Slug:        slug,
-			Description: description,
-			CreatedAt:   createdAt,
-			UpdatedAt:   updatedAt,
-			CategoryID:  categoryID,
-		}
-		log.Print("image: ", image)
-		images = append(images, &image)
-	}
-
-	return images, nil
 }

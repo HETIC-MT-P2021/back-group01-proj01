@@ -13,7 +13,7 @@ type Repository struct {
 
 // Tag struct
 type Tag struct {
-	ID        int64     `json:"id"`
+	ID        int64     `json:"id,omitempty"`
 	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

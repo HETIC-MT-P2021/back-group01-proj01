@@ -13,7 +13,7 @@ type Repository struct {
 
 // Category struct
 type Category struct {
-	ID          int64     `json:"id"`
+	ID          int64     `json:"id,omitempty"`
 	Name        string    `json:"name,omitempty"`
 	Description string    `json:"description,omitempty"`
 	CreatedAt   time.Time `json:"created_at,omitempty"`
