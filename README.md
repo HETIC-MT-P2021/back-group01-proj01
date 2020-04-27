@@ -92,9 +92,10 @@ This repository contains all Golang API code for the image gallery project
 
 ### LIST 
 
-* [Get an image by ID](#get-an-image-by-id)
-* [Get all images](#get-all-images)
-* [Post an image](#post-an-image)
+* [Get an image metadata by ID](#get-an-image-by-id)
+* [Get all images metadata](#get-all-images)
+* [Post an image metadata](#post-an-image-metadata)
+* [Get an image](#post-an-image)
 * [Update an image](#update-an-image)
 * [Delete an image](#update-an-image)
 * [Get a category by ID](#get-a-category-by-id)
@@ -189,8 +190,8 @@ Content-type: application/json
     ],
 }
 ```
-// TODO : update when file upload system is in place
-### Post an image <a name="post-an-image"></a> 
+
+### Post an image metadata<a name="post-an-image-metadata"></a> 
 
 ``` http
 POST /images
@@ -235,6 +236,15 @@ Content-type: application/json
 
 ```
 
+
+### Get an image <a name="post-an-image"></a> 
+
+``` http
+GET /uploads/{image_id}/{image_slug}.{image_extension)
+Content-type : application/json
+
+```
+
 ### Update an image <a name="update-an-image"></a>
 
 ``` http
@@ -274,7 +284,8 @@ Content-type: application/json
 ### Delete an image <a name="delete-an-image"></a>
 
 ``` http
-DELETE /images/2
+DELETE /images/2                       // deletes image only
+DELETE /images/2?delete_mode=hard      // deletes both image and image metadate
 Content-type : application/json
 ```
 

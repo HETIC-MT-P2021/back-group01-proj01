@@ -1,13 +1,20 @@
 package image
 
 import (
+	"fmt"
 	"github.com/gorilla/mux"
 	"image_gallery/category"
 	"image_gallery/database"
 	"image_gallery/helpers"
 	cLog "image_gallery/logger"
 	"image_gallery/router"
+	"io/ioutil"
+	"log"
+	"mime"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"strconv"
 )
 
 // Handler is the home handler
@@ -48,8 +55,18 @@ func (h *Handler) Routes() router.Routes {
 			Pattern:     "/images/{id}",
 			HandlerFunc: h.deleteImage,
 		},
+		router.Route{
+			Name:        "upload",
+			Method:      "POST",
+			Pattern:     "/upload/{id}",
+			HandlerFunc: h.upload,
+		},
 	}
 }
+
+const maxUploadSize = 2 * 1024 * 1024 // 2 mb
+// UploadPath const to set upload path for all images
+const UploadPath = "/go/uploads/"
 
 func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
 
@@ -64,8 +81,6 @@ func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
 		h.Logger.Error(err)
 		return
 	}
-
-	h.Logger.Printf("VAR %v", id)
 
 	imageSelected, err := repository.selectImageByID(id)
 	if err != nil {
@@ -188,20 +203,148 @@ func (h *Handler) updateImage(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) deleteImage(w http.ResponseWriter, r *http.Request) {
 	muxVars := mux.Vars(r)
+
 	id, err := helpers.ParseInt64(muxVars["id"])
 	if err != nil {
 		h.Logger.Error(err)
 		return
 	}
+
 	db := database.DbConn
 	repository := Repository{Conn: db}
 
-	rowsAffected, err := repository.deleteImage(id)
+	image, err := repository.selectImageByID(id)
 	if err != nil {
 		h.Logger.Error(err)
 		return
 	}
 
-	h.Logger.Infof("%d image deleted with ID: %v", rowsAffected, id)
-	helpers.WriteJSON(w, http.StatusNoContent, "Image deleted")
+	// Hard delete mode deletes both image and image metadata
+	if r.URL.Query().Get("delete_mode") == "hard" {
+
+		rowsAffected, err := repository.deleteImage(id)
+		if err != nil {
+			h.Logger.Error(err)
+			return
+		}
+
+		h.Logger.Infof("%d image deleted with ID: %v", rowsAffected, id)
+		helpers.WriteJSON(w, http.StatusNoContent, "Image deleted")
+	}
+
+	path := UploadPath + muxVars["id"] + "/" + image.Slug + image.Type
+
+	log.Printf("%s", path)
+
+	err = os.Remove(path)
+	if err != nil {
+		h.Logger.Error(err)
+		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "could not delete image")
+		return
+	}
+
+}
+
+func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
+
+	muxVars := mux.Vars(r)
+	db := database.DbConn
+
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	repository := Repository{Conn: db}
+
+	id, err := helpers.ParseInt64(muxVars["id"])
+	if err != nil {
+		h.Logger.Error(err)
+		return
+	}
+
+	image, err := repository.selectImageByID(id)
+	if err != nil {
+		h.Logger.Errorf("could not retrieve image by id : %v", err)
+		helpers.WriteErrorJSON(w, http.StatusBadRequest, "Could not check if image has already been uploaded")
+	}
+
+	log.Printf("image type: %s", image.Type)
+
+	if image.Type != "" {
+		log.Printf("do you pass here?")
+		h.Logger.Errorf("image has already been uploaded to file server")
+		helpers.WriteErrorJSON(w, http.StatusBadRequest, "You already have uploaded this image")
+		return
+	}
+
+	file, handle, err := r.FormFile("file")
+	if err != nil {
+		h.Logger.Errorf("get file from form data failed : %v", err)
+		helpers.WriteErrorJSON(w, http.StatusBadRequest, "Could not upload file")
+	}
+	defer file.Close()
+
+	fileSize := handle.Size
+	fmt.Printf("File size (bytes): %v\n", fileSize)
+	// validate file size
+	if fileSize > maxUploadSize {
+		helpers.WriteErrorJSON(w, http.StatusBadRequest, "File cannot exceed 2MB")
+		return
+	}
+
+	mimeType := handle.Header.Get("Content-Type")
+	switch mimeType {
+	case "image/jpeg":
+		err = saveFile(w, file, handle, image)
+		if err != nil {
+			h.Logger.Errorf("could not save file: %v", err)
+			helpers.WriteErrorJSON(w, http.StatusBadRequest, "File could not be uploaded")
+			return
+		}
+	case "image/png":
+		err = saveFile(w, file, handle, image)
+		if err != nil {
+			h.Logger.Errorf("could not save file: %v", err)
+			helpers.WriteErrorJSON(w, http.StatusBadRequest, "File could not be uploaded")
+			return
+		}
+	default:
+		helpers.WriteErrorJSON(w, http.StatusBadRequest, "The format file is not valid.")
+	}
+}
+
+func saveFile(w http.ResponseWriter, file multipart.File, handle *multipart.FileHeader, image *Image) error {
+	data, err := ioutil.ReadAll(file)
+	db := database.DbConn
+	repository := Repository{Conn: db}
+	if err != nil {
+		return fmt.Errorf("could not read file: %v", err)
+	}
+
+	dirName := strconv.FormatInt(image.ID, 10)
+	fileName := image.Slug
+	extensions, err := mime.ExtensionsByType(handle.Header.Get("Content-Type"))
+
+	if _, err := os.Stat(UploadPath + dirName); os.IsNotExist(err) {
+		err = os.Mkdir(UploadPath+dirName, 0755)
+		if err != nil {
+			return fmt.Errorf("could not write directory: %v", err)
+		}
+	}
+
+	err = ioutil.WriteFile(UploadPath+dirName+"/"+fileName+extensions[0], data, 0755)
+	if err != nil {
+		return fmt.Errorf("could not write file: %v", err)
+	}
+
+	image.Type = extensions[0]
+
+	err = repository.updateImage(image, image.ID)
+	if err != nil {
+		return fmt.Errorf("could not update image type: %v", err)
+	}
+
+	helpers.WriteJSON(w, http.StatusCreated, "File uploaded successfully!.")
+	return nil
 }

@@ -52,6 +52,10 @@ func main() {
 
 	muxRouter := apiRouter.Configure()
 
+	// handle file server
+	muxRouter.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/",
+		http.FileServer(http.Dir(image.UploadPath))))
+
 	err = http.ListenAndServe(
 		":8080",
 		handlers.CORS(

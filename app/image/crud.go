@@ -21,6 +21,7 @@ type Image struct {
 	Name        string             `json:"name"`
 	Slug        string             `json:"slug"`
 	Description string             `json:"description"`
+	Type        string             `json:"type,omitempty"`
 	CreatedAt   time.Time          `json:"created_at"`
 	UpdatedAt   time.Time          `json:"updated_at"`
 	CategoryID  int64              `json:"category_id"`
@@ -38,13 +39,13 @@ func (i *Image) Validate() error {
 }
 
 func (repository *Repository) selectImageByID(id int64) (*Image, error) {
-	row := repository.Conn.QueryRow(`SELECT i.id, i.name, i.slug, i.description, i.created_at, i.updated_at, i.category_id 
+	row := repository.Conn.QueryRow(`SELECT i.id, i.name, i.slug, i.description, i.type, i.created_at, i.updated_at, i.category_id 
 	FROM image i 
 	WHERE i.id=?;`, id)
-	var name, slug, description string
+	var name, slug, description, typeExt string
 	var createdAt, updatedAt time.Time
 	var categoryID int64
-	err := row.Scan(&id, &name, &slug, &description, &createdAt, &updatedAt, &categoryID)
+	err := row.Scan(&id, &name, &slug, &description, &typeExt, &createdAt, &updatedAt, &categoryID)
 	if err != nil {
 		return nil, err
 	}
@@ -53,6 +54,7 @@ func (repository *Repository) selectImageByID(id int64) (*Image, error) {
 		Name:        name,
 		Slug:        slug,
 		Description: description,
+		Type:        typeExt,
 		CreatedAt:   createdAt,
 		UpdatedAt:   updatedAt,
 		CategoryID:  categoryID,
@@ -77,13 +79,13 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 	scan := make([]interface{}, 0)
 
 	var id, categoryID int64
-	var name, slug, description, categoryName, categoryDescription, tagName string
+	var name, slug, description, typeExt, categoryName, categoryDescription, tagName string
 	var createdAt, updatedAt time.Time
 
-	scan = append(scan, &id, &name, &slug, &description, &createdAt, &updatedAt, &categoryID)
+	scan = append(scan, &id, &name, &slug, &description, &typeExt, &createdAt, &updatedAt, &categoryID)
 
 	queryFields := []string{
-		"i.id", "i.name", "i.slug", "i.description", "i.created_at", "i.updated_at", "i.category_id",
+		"i.id", "i.name", "i.slug", "i.description", "i.type", "i.created_at", "i.updated_at", "i.category_id",
 	}
 
 	// Filtering lessons by date
@@ -178,12 +180,13 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 // insertCategory posts a new image
 func (repository *Repository) insertImage(image *Image) error {
 
-	stmt, err := repository.Conn.Prepare("INSERT INTO image(name, slug, description, created_at," +
-		" updated_at, category_id) VALUES(?,?,?,?,?,?)")
+	stmt, err := repository.Conn.Prepare("INSERT INTO image(name, slug, description, type, created_at," +
+		" updated_at, category_id) VALUES(?,?,?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
 
+	image.Type = ""
 	image.CreatedAt = time.Now()
 	image.UpdatedAt = time.Now()
 
@@ -201,7 +204,7 @@ func (repository *Repository) insertImage(image *Image) error {
 		}
 	}
 
-	res, errExec := stmt.Exec(image.Name, image.Slug, image.Description, image.CreatedAt, image.UpdatedAt,
+	res, errExec := stmt.Exec(image.Name, image.Slug, image.Description, image.Type, image.CreatedAt, image.UpdatedAt,
 		image.CategoryID)
 	if errExec != nil {
 		return fmt.Errorf("could not exec stmt: %v", errExec)
@@ -220,7 +223,7 @@ func (repository *Repository) insertImage(image *Image) error {
 
 // updateImage by ID
 func (repository *Repository) updateImage(image *Image, id int64) error {
-	stmt, err := repository.Conn.Prepare("UPDATE image SET name=(?), description=(?), " +
+	stmt, err := repository.Conn.Prepare("UPDATE image SET name=(?), description=(?), type=(?)," +
 		"updated_at=(?) WHERE id=(?)")
 	if err != nil {
 		return err
@@ -236,7 +239,7 @@ func (repository *Repository) updateImage(image *Image, id int64) error {
 	image.Slug = slug
 	image.UpdatedAt = time.Now()
 
-	_, errExec := stmt.Exec(image.Name, image.Description, image.UpdatedAt, id)
+	_, errExec := stmt.Exec(image.Name, image.Description, image.Type, image.UpdatedAt, id)
 
 	if errExec != nil {
 		return errExec

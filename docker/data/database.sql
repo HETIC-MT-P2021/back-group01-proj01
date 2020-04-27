@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS image (
     name VARCHAR(255),
     slug VARCHAR(255) UNIQUE,
     description TEXT,
+    type VARCHAR(10),
     created_at DATETIME,
     updated_at DATETIME,
     category_id INT, 

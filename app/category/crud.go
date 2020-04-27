@@ -26,7 +26,9 @@ func (c *Category) Validate() error {
 	if c.Name == "" {
 		return fmt.Errorf("name cannot be empty")
 	}
+
 	return nil
+
 }
 
 // SelectCategoryByID retrieves a product using its id
