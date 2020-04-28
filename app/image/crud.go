@@ -21,6 +21,7 @@ type Image struct {
 	Name        string             `json:"name"`
 	Slug        string             `json:"slug"`
 	Description string             `json:"description"`
+	Type        string             `json:"type,omitempty"`
 	CreatedAt   time.Time          `json:"created_at"`
 	UpdatedAt   time.Time          `json:"updated_at"`
 	CategoryID  int64              `json:"category_id"`
@@ -38,27 +39,29 @@ func (i *Image) Validate() error {
 }
 
 func (repository *Repository) selectImageByID(id int64) (*Image, error) {
-	row := repository.Conn.QueryRow(`SELECT i.id, i.name, i.slug, i.description, i.created_at, i.updated_at, i.category_id 
-	FROM image i 
-	WHERE i.id=?;`, id)
-	var name, slug, description string
+	row := repository.Conn.QueryRow(`SELECT i.id, i.name, i.slug, i.description, i.type, 
+	i.created_at, i.updated_at, i.category_id FROM image i WHERE i.id=?;`, id)
+	var name, slug, description, typeExt string
 	var createdAt, updatedAt time.Time
 	var categoryID int64
-	err := row.Scan(&id, &name, &slug, &description, &createdAt, &updatedAt, &categoryID)
-	if err != nil {
+	switch err := row.Scan(&id, &name, &slug, &description, &typeExt, &createdAt, &updatedAt, &categoryID); err {
+	case sql.ErrNoRows:
+		return nil, nil
+	case nil:
+		image := Image{
+			ID:          id,
+			Name:        name,
+			Slug:        slug,
+			Description: description,
+			Type:        typeExt,
+			CreatedAt:   createdAt,
+			UpdatedAt:   updatedAt,
+			CategoryID:  categoryID,
+		}
+		return &image, nil
+	default:
 		return nil, err
 	}
-	image := Image{
-		ID:          id,
-		Name:        name,
-		Slug:        slug,
-		Description: description,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-		CategoryID:  categoryID,
-	}
-
-	return &image, nil
 }
 
 type filterName string
@@ -77,13 +80,13 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 	scan := make([]interface{}, 0)
 
 	var id, categoryID int64
-	var name, slug, description, categoryName, categoryDescription, tagName string
+	var name, slug, description, typeExt, categoryName, categoryDescription, tagName string
 	var createdAt, updatedAt time.Time
 
-	scan = append(scan, &id, &name, &slug, &description, &createdAt, &updatedAt, &categoryID)
+	scan = append(scan, &id, &name, &slug, &description, &typeExt, &createdAt, &updatedAt, &categoryID)
 
 	queryFields := []string{
-		"i.id", "i.name", "i.slug", "i.description", "i.created_at", "i.updated_at", "i.category_id",
+		"i.id", "i.name", "i.slug", "i.description", "i.type", "i.created_at", "i.updated_at", "i.category_id",
 	}
 
 	// Filtering lessons by date
@@ -178,30 +181,31 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 // insertCategory posts a new image
 func (repository *Repository) insertImage(image *Image) error {
 
-	stmt, err := repository.Conn.Prepare("INSERT INTO image(name, slug, description, created_at," +
-		" updated_at, category_id) VALUES(?,?,?,?,?,?)")
+	stmt, err := repository.Conn.Prepare("INSERT INTO image(name, slug, description, type, created_at," +
+		" updated_at, category_id) VALUES(?,?,?,?,?,?,?)")
 	if err != nil {
 		return err
 	}
 
+	image.Type = ""
 	image.CreatedAt = time.Now()
 	image.UpdatedAt = time.Now()
 
 	// Generate a slug
 	for {
 		slug := helpers.GenerateAlphanumericToken(10)
-		exists, err := repository.slugExists(slug)
+		id, err := repository.checkIfRowExists("image", "slug", slug)
 		if err != nil {
 			return fmt.Errorf("could not check if slug exists: %w", err)
 		}
 
-		if !exists {
+		if id == 0 {
 			image.Slug = slug
 			break
 		}
 	}
 
-	res, errExec := stmt.Exec(image.Name, image.Slug, image.Description, image.CreatedAt, image.UpdatedAt,
+	res, errExec := stmt.Exec(image.Name, image.Slug, image.Description, image.Type, image.CreatedAt, image.UpdatedAt,
 		image.CategoryID)
 	if errExec != nil {
 		return fmt.Errorf("could not exec stmt: %v", errExec)
@@ -220,7 +224,7 @@ func (repository *Repository) insertImage(image *Image) error {
 
 // updateImage by ID
 func (repository *Repository) updateImage(image *Image, id int64) error {
-	stmt, err := repository.Conn.Prepare("UPDATE image SET name=(?), description=(?), " +
+	stmt, err := repository.Conn.Prepare("UPDATE image SET name=(?), description=(?), type=(?)," +
 		"updated_at=(?) WHERE id=(?)")
 	if err != nil {
 		return err
@@ -236,7 +240,7 @@ func (repository *Repository) updateImage(image *Image, id int64) error {
 	image.Slug = slug
 	image.UpdatedAt = time.Now()
 
-	_, errExec := stmt.Exec(image.Name, image.Description, image.UpdatedAt, id)
+	_, errExec := stmt.Exec(image.Name, image.Description, image.Type, image.UpdatedAt, id)
 
 	if errExec != nil {
 		return errExec
@@ -257,16 +261,39 @@ func (repository *Repository) deleteImage(id int64) (int64, error) {
 	return res.RowsAffected()
 }
 
-func (repository *Repository) slugExists(slug string) (bool, error) {
-	row := repository.Conn.QueryRow(`SELECT i.slug FROM image i WHERE i.slug=?;`, slug)
+func (repository *Repository) checkIfRowExists(tableName string, WhereColumn string, whereValue interface{}) (int64, error) {
+	query := "SELECT id FROM " + tableName + " WHERE " + WhereColumn + "=(?)"
+	row := repository.Conn.QueryRow(query, whereValue)
 
-	err := row.Scan(&slug)
-	if err == sql.ErrNoRows {
-		return false, nil
+	var id int64
+
+	switch err := row.Scan(&id); err {
+	case sql.ErrNoRows:
+		return 0, nil
+	case nil:
+		return id, nil
+	default:
+		return 0, err
 	}
+}
+
+// add tag id and image id to Many To Many Table
+func (repository *Repository) linkTagToImage(imageID int64, tagID int64) error {
+
+	stmt, err := repository.Conn.Prepare("INSERT INTO image_tag(image_id, tag_id)" +
+		"VALUES(?,?)")
 	if err != nil {
-		return false, err
+		return err
+	}
+	res, errExec := stmt.Exec(imageID, tagID)
+	if errExec != nil {
+		return errExec
 	}
 
-	return true, nil
+	_, errInsert := res.LastInsertId()
+	if errInsert != nil {
+		return errInsert
+	}
+
+	return nil
 }

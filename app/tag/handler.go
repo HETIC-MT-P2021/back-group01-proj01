@@ -51,6 +51,7 @@ func (h *Handler) Routes() router.Routes {
 }
 
 func (h *Handler) gettagByID(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
 
 	muxVars := mux.Vars(r)
 	db := database.DbConn
@@ -80,6 +81,8 @@ func (h *Handler) gettagByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) getAllTags(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
+
 	db := database.DbConn
 	repository := Repository{Conn: db}
 
@@ -95,6 +98,7 @@ func (h *Handler) getAllTags(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) createTag(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
 
 	db := database.DbConn
 	repository := Repository{Conn: db}
@@ -106,7 +110,7 @@ func (h *Handler) createTag(w http.ResponseWriter, r *http.Request) {
 		h.Logger.Error(err)
 		return
 	}
-	err = repository.insertTag(&tag)
+	err = repository.InsertTag(&tag)
 
 	if err != nil {
 		h.Logger.Error(err)
@@ -119,6 +123,8 @@ func (h *Handler) createTag(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) updateTag(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
+
 	muxVars := mux.Vars(r)
 	id, err := helpers.ParseInt64(muxVars["id"])
 	if err != nil {
@@ -145,6 +151,8 @@ func (h *Handler) updateTag(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) deleteTag(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
+
 	muxVars := mux.Vars(r)
 	id, err := helpers.ParseInt64(muxVars["id"])
 	if err != nil {
