@@ -51,6 +51,7 @@ func (h *Handler) Routes() router.Routes {
 }
 
 func (h *Handler) getCategoryByID(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
 
 	muxVars := mux.Vars(r)
 	db := database.DbConn
@@ -80,6 +81,8 @@ func (h *Handler) getCategoryByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) getAllCategories(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
+
 	db := database.DbConn
 	repository := Repository{Conn: db}
 
@@ -95,6 +98,7 @@ func (h *Handler) getAllCategories(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) createCategory(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
 
 	db := database.DbConn
 	repository := Repository{Conn: db}
@@ -120,6 +124,8 @@ func (h *Handler) createCategory(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) updateCategory(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
+
 	muxVars := mux.Vars(r)
 	id, err := helpers.ParseInt64(muxVars["id"])
 	if err != nil {
@@ -146,6 +152,8 @@ func (h *Handler) updateCategory(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) deleteCategory(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
+
 	muxVars := mux.Vars(r)
 	id, err := helpers.ParseInt64(muxVars["id"])
 	if err != nil {

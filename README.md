@@ -6,11 +6,14 @@ This repository contains all Golang API code for the image gallery project
 
 ## Usage
 
-> Run the project 
 
 ```git config core.hooksPath .githooks```
+> Configure GitHooks
+
 
 ``` docker-compose up --build```
+> Run the project
+
 
 ## Resources
 

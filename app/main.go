@@ -60,9 +60,9 @@ func main() {
 	if port == "" {
 		port = "3000"
 	}
-	
+
 	logger.Infof("serving api on port: %s", port)
-	
+
 	err = http.ListenAndServe(
 		":8080",
 		handlers.CORS(

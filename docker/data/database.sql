@@ -30,7 +30,9 @@ CREATE TABLE IF NOT EXISTS tag (
 CREATE TABLE IF NOT EXISTS image_tag (
     image_id INT,
     tag_id INT,
-    FOREIGN KEY (image_id) REFERENCES image(id),
-    FOREIGN KEY (tag_id) REFERENCES tag(id)
+    FOREIGN KEY (image_id) 
+        REFERENCES image(id),
+    FOREIGN KEY (tag_id) 
+        REFERENCES tag(id)
 );
 

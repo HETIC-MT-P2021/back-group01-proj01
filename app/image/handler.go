@@ -8,6 +8,7 @@ import (
 	"image_gallery/helpers"
 	cLog "image_gallery/logger"
 	"image_gallery/router"
+	"image_gallery/tag"
 	"io/ioutil"
 	"log"
 	"mime"
@@ -56,7 +57,7 @@ func (h *Handler) Routes() router.Routes {
 			HandlerFunc: h.deleteImage,
 		},
 		router.Route{
-			Name:        "upload",
+			Name:        "Upload an image",
 			Method:      "POST",
 			Pattern:     "/upload/{id}",
 			HandlerFunc: h.upload,
@@ -69,6 +70,7 @@ const maxUploadSize = 2 * 1024 * 1024 // 2 mb
 const UploadPath = "/go/uploads/"
 
 func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
 
 	muxVars := mux.Vars(r)
 	db := database.DbConn
@@ -89,8 +91,6 @@ func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.Logger.Printf("image: %v", imageSelected)
-
 	if imageSelected == nil {
 		helpers.WriteJSON(w, http.StatusNotFound, imageSelected)
 		return
@@ -100,11 +100,15 @@ func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
 
 	imageSelected.Category = categoryRetrieved
 
+	// TODO(athenais) add tags
+
 	h.Logger.Infof("image retrieved: %v", imageSelected)
 	helpers.WriteJSON(w, http.StatusOK, imageSelected)
 }
 
 func (h *Handler) getAllImages(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
+
 	db := database.DbConn
 	repository := Repository{Conn: db}
 
@@ -134,16 +138,22 @@ func (h *Handler) getAllImages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if images == nil {
+		helpers.WriteJSON(w, http.StatusNotFound, "no images found")
+		return
+	}
+
 	h.Logger.Infof("images retrieved")
 	helpers.WriteJSON(w, http.StatusOK, images)
 }
 
 func (h *Handler) createImage(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
 
 	db := database.DbConn
 	imageRepository := Repository{Conn: db}
 	categoryRepository := category.Repository{Conn: db}
-	h.Logger.Debugf("calling %v", r.URL.Path)
+	tagRepository := tag.Repository{Conn: db}
 
 	var imageToCreate Image
 	err := helpers.ReadValidateJSON(w, r, &imageToCreate)
@@ -160,6 +170,36 @@ func (h *Handler) createImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("image ID : %d", imageToCreate.ID)
+
+	if imageToCreate.Tags != nil {
+		for _, tagFromImage := range imageToCreate.Tags {
+			id, err := imageRepository.checkIfRowExists("tag", "name", tagFromImage.Name)
+			if err != nil {
+				h.Logger.Error(err)
+				helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to check if tag exists")
+				return
+			}
+			tagFromImage.ID = id
+			if id == 0 {
+				err = tagRepository.InsertTag(tagFromImage)
+				if err != nil {
+					h.Logger.Error(err)
+					helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to insert tag")
+					return
+				}
+			}
+
+			log.Printf("tag from image ID: %d", tagFromImage.ID)
+			err = imageRepository.linkTagToImage(imageToCreate.ID, tagFromImage.ID)
+			if err != nil {
+				h.Logger.Error(err)
+				helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to insert tag")
+				return
+			}
+		}
+	}
+
 	categoryRetrieved, err := categoryRepository.SelectCategoryByID(imageToCreate.CategoryID)
 	if err != nil {
 		h.Logger.Error(err)
@@ -174,6 +214,8 @@ func (h *Handler) createImage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) updateImage(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
+
 	muxVars := mux.Vars(r)
 	id, err := helpers.ParseInt64(muxVars["id"])
 	if err != nil {
@@ -202,6 +244,8 @@ func (h *Handler) updateImage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) deleteImage(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
+
 	muxVars := mux.Vars(r)
 
 	id, err := helpers.ParseInt64(muxVars["id"])
@@ -229,12 +273,10 @@ func (h *Handler) deleteImage(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.Logger.Infof("%d image deleted with ID: %v", rowsAffected, id)
-		helpers.WriteJSON(w, http.StatusNoContent, "Image deleted")
+		helpers.WriteJSON(w, http.StatusNoContent, "Image metadata deleted")
 	}
 
 	path := UploadPath + muxVars["id"] + "/" + image.Slug + image.Type
-
-	log.Printf("%s", path)
 
 	err = os.Remove(path)
 	if err != nil {
@@ -243,9 +285,13 @@ func (h *Handler) deleteImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.Logger.Infof("%d image fully deleted. ID : %d \n PATH: %s", id, path)
+	helpers.WriteJSON(w, http.StatusNoContent, "Image fully deleted")
+
 }
 
 func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
 
 	muxVars := mux.Vars(r)
 	db := database.DbConn
@@ -315,6 +361,7 @@ func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
 }
 
 func saveFile(w http.ResponseWriter, file multipart.File, handle *multipart.FileHeader, image *Image) error {
+
 	data, err := ioutil.ReadAll(file)
 	db := database.DbConn
 	repository := Repository{Conn: db}

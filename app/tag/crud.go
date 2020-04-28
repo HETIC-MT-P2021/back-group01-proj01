@@ -40,7 +40,7 @@ func (repository *Repository) SelectTagByID(id int64) (*Tag, error) {
 	var createdAt, updatedAt time.Time
 	switch err := row.Scan(&id, &name, &createdAt, &updatedAt); err {
 	case sql.ErrNoRows:
-		return nil, sql.ErrNoRows
+		return nil, nil
 	case nil:
 		tag := Tag{
 			ID:        id,
@@ -50,7 +50,7 @@ func (repository *Repository) SelectTagByID(id int64) (*Tag, error) {
 		}
 		return &tag, nil
 	default:
-		return nil, nil
+		return nil, err
 	}
 }
 
@@ -83,8 +83,8 @@ func (repository *Repository) retrieveAllTags() ([]*Tag, error) {
 	return tags, nil
 }
 
-// insertTag posts a new tag
-func (repository *Repository) insertTag(tag *Tag) error {
+// InsertTag posts a new tag
+func (repository *Repository) InsertTag(tag *Tag) error {
 	stmt, err := repository.Conn.Prepare("INSERT INTO tag(name, created_at," +
 		" updated_at) VALUES(?,?,?)")
 
@@ -93,8 +93,8 @@ func (repository *Repository) insertTag(tag *Tag) error {
 	}
 	tag.CreatedAt = time.Now()
 	tag.UpdatedAt = time.Now()
-	res, errExec := stmt.Exec(tag.Name, tag.CreatedAt, tag.UpdatedAt)
 
+	res, errExec := stmt.Exec(tag.Name, tag.CreatedAt, tag.UpdatedAt)
 	if errExec != nil {
 		return errExec
 	}

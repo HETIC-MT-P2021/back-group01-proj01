@@ -193,12 +193,12 @@ func (repository *Repository) insertImage(image *Image) error {
 	// Generate a slug
 	for {
 		slug := helpers.GenerateAlphanumericToken(10)
-		exists, err := repository.slugExists(slug)
+		id, err := repository.checkIfRowExists("image", "slug", slug)
 		if err != nil {
 			return fmt.Errorf("could not check if slug exists: %w", err)
 		}
 
-		if !exists {
+		if id == 0 {
 			image.Slug = slug
 			break
 		}
@@ -260,16 +260,38 @@ func (repository *Repository) deleteImage(id int64) (int64, error) {
 	return res.RowsAffected()
 }
 
-func (repository *Repository) slugExists(slug string) (bool, error) {
-	row := repository.Conn.QueryRow(`SELECT i.slug FROM image i WHERE i.slug=?;`, slug)
+func (repository *Repository) checkIfRowExists(tableName string, WhereColumn string, whereValue interface{}) (int64, error) {
+	row := repository.Conn.QueryRow("SELECT id FROM "+tableName+" WHERE "+WhereColumn+"=(?)", whereValue)
 
-	err := row.Scan(&slug)
-	if err == sql.ErrNoRows {
-		return false, nil
+	var id int64
+
+	switch err := row.Scan(&whereValue); err {
+	case sql.ErrNoRows:
+		return 0, nil
+	case nil:
+		return id, nil
+	default:
+		return 0, err
 	}
+}
+
+// add tag id and image id to Many To Many Table
+func (repository *Repository) linkTagToImage(imageID int64, tagID int64) error {
+
+	stmt, err := repository.Conn.Prepare("INSERT INTO image_tag(image_id, tag_id)" +
+		"VALUES(?,?)")
 	if err != nil {
-		return false, err
+		return err
+	}
+	res, errExec := stmt.Exec(imageID, tagID)
+	if errExec != nil {
+		return errExec
 	}
 
-	return true, nil
+	_, errInsert := res.LastInsertId()
+	if errInsert != nil {
+		return errInsert
+	}
+
+	return nil
 }
