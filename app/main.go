@@ -56,6 +56,13 @@ func main() {
 	muxRouter.PathPrefix("/uploads/").Handler(http.StripPrefix("/uploads/",
 		http.FileServer(http.Dir(image.UploadPath))))
 
+	port := os.Getenv("API_PORT")
+	if port == "" {
+		port = "3000"
+	}
+	
+	logger.Infof("serving api on port: %s", port)
+	
 	err = http.ListenAndServe(
 		":8080",
 		handlers.CORS(
