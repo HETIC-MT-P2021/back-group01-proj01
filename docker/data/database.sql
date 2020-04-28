@@ -15,7 +15,9 @@ CREATE TABLE IF NOT EXISTS image (
     created_at DATETIME,
     updated_at DATETIME,
     category_id INT, 
-    FOREIGN KEY (category_id) REFERENCES category(id)                      
+    FOREIGN KEY (category_id) 
+        REFERENCES category(id)   
+        ON DELETE CASCADE 
 );
 
 CREATE TABLE IF NOT EXISTS tag (
