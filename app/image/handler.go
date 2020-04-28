@@ -333,7 +333,7 @@ func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	fileSize := handle.Size
-	
+
 	// validate file size
 	if fileSize > maxUploadSize {
 		helpers.WriteErrorJSON(w, http.StatusBadRequest, "File cannot exceed 2MB")
