@@ -98,6 +98,7 @@ This repository contains all Golang API code for the image gallery project
 * [Get an image metadata by ID](#get-an-image-by-id)
 * [Get all images metadata](#get-all-images)
 * [Post an image metadata](#post-an-image-metadata)
+* [Upload an image](#upload-an-image)
 * [Get an image](#post-an-image)
 * [Update an image](#update-an-image)
 * [Delete an image](#update-an-image)
@@ -239,8 +240,15 @@ Content-type: application/json
 
 ```
 
+### Upload an image <a name="upload-an-image"></a>
+``` http
+POST /upload/{image_id}
+Content-type : multipart/form-data
 
-### Get an image <a name="post-an-image"></a> 
+key: "file"
+```
+
+### Get an image <a name="get-an-image"></a> 
 
 ``` http
 GET /uploads/{image_id}/{image_slug}.{image_extension)
