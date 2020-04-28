@@ -296,7 +296,7 @@ Content-type: application/json
 
 ``` http
 DELETE /images/2                       // deletes image only
-DELETE /images/2?delete_mode=hard      // deletes both image and image metadate
+DELETE /images/2?delete_mode=hard      // deletes both image and image metadata
 Content-type : application/json
 ```
 
