@@ -89,7 +89,7 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 		"i.id", "i.name", "i.slug", "i.description", "i.type", "i.created_at", "i.updated_at", "i.category_id",
 	}
 
-	// Filtering lessons by date
+	// Filtering categories by date
 	if v, ok := filters[filterByDateOfUpdate]; ok {
 		if vv, ok := v.(string); ok {
 			switch vv {
@@ -133,8 +133,6 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 	if len(queryOrders) > 0 {
 		query += fmt.Sprintf("\nORDER BY %s", strings.Join(queryOrders, ", "))
 	}
-
-	fmt.Printf("QUERY :\n %s", query)
 
 	rows, err := repository.Conn.Query(query, queryArgs...)
 	if err != nil {

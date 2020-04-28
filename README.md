@@ -327,7 +327,8 @@ Content-type: application/json
 ### Get all categories <a name="get-all-categories"></a>
 
 ```http
-GET /categories                                   
+GET /categories                          
+GET /categories?updated_at=desc         
 Content-type : application/json
 ```
 ```http

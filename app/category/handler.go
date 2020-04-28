@@ -86,7 +86,14 @@ func (h *Handler) getAllCategories(w http.ResponseWriter, r *http.Request) {
 	db := database.DbConn
 	repository := Repository{Conn: db}
 
-	categories, err := repository.retrieveAllCategories()
+	filters := make(map[filterName]interface{})
+
+	order := r.URL.Query().Get(string(filterByDateOfUpdate))
+	if order != "" {
+		filters[filterByDateOfUpdate] = order
+	}
+
+	categories, err := repository.retrieveAllCategories(filters)
 	if err != nil {
 		h.Logger.Error(err)
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to retrieve categories")

@@ -3,6 +3,8 @@ package category
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"strings"
 	"time"
 )
 
@@ -54,10 +56,38 @@ func (repository *Repository) SelectCategoryByID(id int64) (*Category, error) {
 	}
 }
 
+type filterName string
+
+const filterByDateOfUpdate filterName = "updated_at"
+
 // retrieveAllCategories stored in db
-func (repository *Repository) retrieveAllCategories() ([]*Category, error) {
-	rows, err := repository.Conn.Query("SELECT c.id, c.name, c.description, c.created_at, " +
-		"c.updated_at FROM category c ")
+func (repository *Repository) retrieveAllCategories(filters map[filterName]interface{}) ([]*Category, error) {
+	queryOrders := make([]string, 0)
+
+	// Filtering categories by date
+	if v, ok := filters[filterByDateOfUpdate]; ok {
+		if vv, ok := v.(string); ok {
+			switch vv {
+			case "asc":
+				queryOrders = append(queryOrders, "updated_at ASC LIMIT 3")
+			case "desc":
+				queryOrders = append(queryOrders, "updated_at DESC LIMIT 3")
+			}
+		}
+	}
+
+	queryFields := []string{
+		"c.id", "c.name", "c.description", "c.created_at", "c.updated_at",
+	}
+	query := fmt.Sprintf("SELECT %s FROM category c", strings.Join(queryFields, ", "))
+
+	if len(queryOrders) > 0 {
+		query += fmt.Sprintf("\nORDER BY %s", strings.Join(queryOrders, ", "))
+	}
+
+	log.Printf("query : %s", query)
+
+	rows, err := repository.Conn.Query(query)
 
 	if err != nil {
 		return nil, err
