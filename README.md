@@ -21,28 +21,29 @@ This repository contains all Golang API code for the image gallery project
 
 > JSON Format
 
-| Field           | Type                | Description                       |
-| --------------- | ------------------- | --------------------------------  |
-| id              | int                 | id for the image entity           |
-| name            | string              | image name                        |
-| description     | string (text)       | image description (optional)      |
-| created_at      | string (y:m:d:hh:mm)| image creation date               |
-| updated_at      | string (y:m:d:hh:mm)| image update date                 |
-| tags            | [ string ]          | image tags                        |
-| category        | int                 | image category                    |
+| Field           | Type                  | Description                       |
+| --------------- | --------------------- | --------------------------------  |
+| id              | int                   | id for the image entity           |
+| name            | string                | image name                        |
+| description     | string (text)         | image description (optional)      |
+| created_at      | `string (y:m:d:hh:mm)`| image creation date               |
+| updated_at      | `string (y:m:d:hh:mm)`| image update date                 |
+| tags            | [ string ]            | image tags                        |
+| category_id     | int                   | image category id                 |
 
 > Go struct : Image
 
 | Field           | Type                | Description                       |
 | --------------- | ------------------- | --------------------------------  |
-| ID              | uint32              | id for the image entity           |
+| ID              | int64               | id for the image entity           |
 | Name            | string              | image name                        |
 | Description     | string              | image description (optional)      |
 | Slug            | string              | image slug for storage (generated)|
-| Format          | enum                | image format                      |
+| Type            | string              | image type                        |
 | CreatedAt       | `*time.Time`        | image creation date               |
 | UpdatedAt       | `*time.Time`        | image update date                 |
 | Tags            | `[]*Tags`           | image tags                        |
+| CategoryID      | int64               | image category id                 |
 | Category        | `*Category`         | image category                    |
 
 
@@ -50,19 +51,19 @@ This repository contains all Golang API code for the image gallery project
 
 > JSON Format
 
-| Field           | Type                | Description                       |
-| --------------- | ------------------- | --------------------------------  |
-| id              | int                 | id for the category entity        |
-| name            | string              | category name                     |
-| description     | string (text)       | category description (optional)   |
-| created_at      | string (y:m:d:hh:mm)| category creation date            |
-| updated_at      | string (y:m:d:hh:mm)| category update date              |
+| Field           | Type                  | Description                       |
+| --------------- | --------------------- | --------------------------------  |
+| id              | int                   | id for the category entity        |
+| name            | string                | category name                     |
+| description     | string (text)         | category description (optional)   |
+| created_at      | `string (y:m:d:hh:mm)`| category creation date            |
+| updated_at      | `string (y:m:d:hh:mm)`| category update date              |
 
 > Go struct : Category
 
 | Field           | Type                | Description                       |
 | --------------- | ------------------- | --------------------------------  |
-| ID              | uint32              | id for the category entity        |
+| ID              | int64               | id for the category entity        |
 | Name            | string              | category name                     |
 | Description     | string              | category description (optional)   |
 | CreatedAt       | `*time.Time`        | category creation date            |
@@ -73,23 +74,21 @@ This repository contains all Golang API code for the image gallery project
 
 > JSON Format
 
-| Field           | Type                | Description                       |
-| --------------- | ------------------- | --------------------------------  |
-| id              | int                 | id for the tag entity             |
-| name            | string              | tag name                          |
-| created_at      | string (y:m:d:hh:mm)| tag creation date                 |
-| updated_at      | string (y:m:d:hh:mm)| tag update date                   |
-| images          | [ string ]          | images related to the tag         |
+| Field           | Type                  | Description                       |
+| --------------- | --------------------- | --------------------------------  |
+| id              | int                   | id for the tag entity             |
+| name            | string                | tag name                          |
+| created_at      | `string (y:m:d:hh:mm)`| tag creation date                 |
+| updated_at      | `string (y:m:d:hh:mm)`| tag update date                   |
 
 > Go struct : Tags
 
 | Field           | Type                | Description                       |
 | --------------- | ------------------- | --------------------------------  |
-| ID              | uint32              | id for the tag entity             |
+| ID              | int64               | id for the tag entity             |
 | Name            | string              | tag name                          |
 | CreatedAt       | `*time.Time`        | tag creation date                 |
 | UpdatedAt       | `*time.Time`        | tag update date                   |
-| Images          | `[]*Image`          | images related to the tag         |
 
 ## Endpoints
 
@@ -144,7 +143,7 @@ Content-type: application/json
 ```http
 GET /images     
 
-// can be filtered by update date, tag, and/or category
+// can be filtered by update date tag and/or category
 
 GET /images?updated_at=asc
 GET /images?updated_at=desc
@@ -173,7 +172,7 @@ Content-type: application/json
         {
             "name": "cute"
         }
-    ],
+    ]
 },
 {
 	"id" : 2,
@@ -191,7 +190,7 @@ Content-type: application/json
         {
             "name": "cute"
         }
-    ],
+    ]
 }
 ```
 
@@ -211,7 +210,7 @@ Content-type : application/json
         {
             "name": "cute"
         }
-    ],
+    ]
 }
 ```
 
@@ -235,7 +234,7 @@ Content-type: application/json
         {
             "name": "cute"
         }
-    ],
+    ]
 }
 
 ```
@@ -263,7 +262,7 @@ PUT /images/2
 Content-type : application/json
 {
 	"name" : "doggy",
-	"description : "my dogoo",
+	"description : "my dogoo"
 }
 ```
 
@@ -279,15 +278,18 @@ Content-type: application/json
 	"updated_at" : "2020:04:04:17:28",
 	"slug" : "12ESRGHUTEGO4765568",
 	"format" : "png"
-	"category_id" : 1,
-	"tags" : [
+	"category_id": 1,
+	"tags": [
         {
-            "name": "dog"
-        },
-        {
-            "name": "cute"
-        }
-    ],
+    		"name": "dog"
+    	},
+    	{
+    		"name": "cute"
+    	},
+    	{
+    		"name": "love"
+    	}
+    ]
 }
 
 ```
@@ -344,8 +346,8 @@ Content-type: application/json
 {
 	"id" : 2,
 	"name" : "animals",
-	"description : "A collection of animal images",
-	"category_id" : 1,
+	"description" : "A collection of animal images",
+	"category_id": 1,
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:05:15:53",
 }
@@ -362,7 +364,7 @@ POST /categories
 Content-type : application/json
 {
 	"name" : "animals",
-	"description : "A collection of animal images"
+	"description" : "A collection of animal images"
 }
 ```
 
@@ -373,7 +375,7 @@ Content-type: application/json
 {
 	"id" : 2,
 	"name" : "animals",
-	"description : "A collection of animal images",
+	"description" : "A collection of animal images",
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:05:15:53",
 }
