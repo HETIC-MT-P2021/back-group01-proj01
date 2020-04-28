@@ -89,7 +89,7 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 		"i.id", "i.name", "i.slug", "i.description", "i.type", "i.created_at", "i.updated_at", "i.category_id",
 	}
 
-	// Filtering categories by date
+	// Filtering images by date
 	if v, ok := filters[filterByDateOfUpdate]; ok {
 		if vv, ok := v.(string); ok {
 			switch vv {

@@ -3,7 +3,6 @@ package category
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 )
@@ -85,8 +84,6 @@ func (repository *Repository) retrieveAllCategories(filters map[filterName]inter
 		query += fmt.Sprintf("\nORDER BY %s", strings.Join(queryOrders, ", "))
 	}
 
-	log.Printf("query : %s", query)
-
 	rows, err := repository.Conn.Query(query)
 
 	if err != nil {
@@ -100,7 +97,7 @@ func (repository *Repository) retrieveAllCategories(filters map[filterName]inter
 	for rows.Next() {
 		err := rows.Scan(&id, &name, &description, &createdAt, &updatedAt)
 		if err != nil {
-			fmt.Println(err)
+			return nil, err
 		}
 		categories = append(categories, &Category{
 			ID:          id,
