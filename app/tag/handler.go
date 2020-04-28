@@ -159,7 +159,6 @@ func (h *Handler) deleteTag(w http.ResponseWriter, r *http.Request) {
 		h.Logger.Error(err)
 		return
 	}
-	h.Logger.Printf("ID : %d", id)
 
 	db := database.DbConn
 	repository := Repository{Conn: db}

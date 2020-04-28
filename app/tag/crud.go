@@ -70,7 +70,7 @@ func (repository *Repository) retrieveAllTags() ([]*Tag, error) {
 	for rows.Next() {
 		err := rows.Scan(&id, &name, &createdAt, &updatedAt)
 		if err != nil {
-			fmt.Println(err)
+			return nil, err
 		}
 		tags = append(tags, &Tag{
 			ID:        id,
