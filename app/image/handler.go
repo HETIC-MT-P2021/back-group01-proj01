@@ -10,7 +10,6 @@ import (
 	"image_gallery/router"
 	"image_gallery/tag"
 	"io/ioutil"
-	"log"
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -170,16 +169,16 @@ func (h *Handler) createImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("image ID : %d", imageToCreate.ID)
-
 	if imageToCreate.Tags != nil {
 		for _, tagFromImage := range imageToCreate.Tags {
+
 			id, err := imageRepository.checkIfRowExists("tag", "name", tagFromImage.Name)
 			if err != nil {
 				h.Logger.Error(err)
 				helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to check if tag exists")
 				return
 			}
+
 			tagFromImage.ID = id
 			if id == 0 {
 				err = tagRepository.InsertTag(tagFromImage)
@@ -190,7 +189,6 @@ func (h *Handler) createImage(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			log.Printf("tag from image ID: %d", tagFromImage.ID)
 			err = imageRepository.linkTagToImage(imageToCreate.ID, tagFromImage.ID)
 			if err != nil {
 				h.Logger.Error(err)
@@ -322,7 +320,6 @@ func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if image.Type != "" {
-		log.Printf("do you pass here?")
 		h.Logger.Errorf("image has already been uploaded to file server")
 		helpers.WriteErrorJSON(w, http.StatusBadRequest, "You already have uploaded this image")
 		return

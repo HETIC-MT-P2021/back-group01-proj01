@@ -262,11 +262,12 @@ func (repository *Repository) deleteImage(id int64) (int64, error) {
 }
 
 func (repository *Repository) checkIfRowExists(tableName string, WhereColumn string, whereValue interface{}) (int64, error) {
-	row := repository.Conn.QueryRow("SELECT id FROM "+tableName+" WHERE "+WhereColumn+"=(?)", whereValue)
+	query := "SELECT id FROM " + tableName + " WHERE " + WhereColumn + "=(?)"
+	row := repository.Conn.QueryRow(query, whereValue)
 
 	var id int64
 
-	switch err := row.Scan(&whereValue); err {
+	switch err := row.Scan(&id); err {
 	case sql.ErrNoRows:
 		return 0, nil
 	case nil:
