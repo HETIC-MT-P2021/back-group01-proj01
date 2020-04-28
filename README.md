@@ -121,12 +121,11 @@ Content-type: application/json
 	"id" : "1",
 	"name" : "cute_cat_picture.png",
 	"description" : "i are developer i make computer beep boop beep beep boop",
-	"slug" : "12ERRGTEGOIUYFDFT18FFGSHH",
-	"format" : "png",
+	"slug" : "9hjtv67dpk",
+	"type" : ".png",
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:06:08:23",
-	"category" : {
-	}
+	"category_id": 1,
 	"tags" : [
         {
             "name": "cat"
@@ -159,12 +158,11 @@ Content-type: application/json
 	"id" : 1,
 	"name" : "cute_cat_picture.png",
 	"description" : "i are developer i make computer beep boop beep beep boop",
-	"slug" : "12ERRGTEGOIUYFDFT18FFGSHH",
-	"format" : "png",
+	"slug" : "9hjtv67dpk",
+	"type" : ".png",
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:05:15:53",
-	"category" : {
-	}
+	"category_id" : 1,
 	"tags" : [
         {
             "name": "cat"
@@ -178,8 +176,8 @@ Content-type: application/json
 	"id" : 2,
 	"name" : "cute_dog_picture.png",
 	"description" : "doggo",
-	"slug" : "12ERRGTEGOIUYFDFT18FFGSHH",
-	"format" : "png",
+	"slug" : "9hjtv67dpk",
+	"type" : ".png",
 	"created_at" : "2020:04:03:12:53",
 	"updated_at" : "2020:04:03:12:53",
 	"category_id" : 1,
@@ -224,8 +222,8 @@ Content-type: application/json
 	"description" : "doggo",
 	"created_at" : "2020:04:03:12:53",
 	"updated_at" : "2020:04:03:12:53",
-	"slug" : "12ESRGHUTEGO4765568",
-	"format" : "png"
+	"slug" : "9hjtv67dpk",
+	"type" : ".png",
 	"category_id" : 1,
 	"tags" : [
         {
@@ -262,7 +260,7 @@ PUT /images/2
 Content-type : application/json
 {
 	"name" : "doggy",
-	"description : "my dogoo"
+	"description" : "my dogoo"
 }
 ```
 
@@ -276,8 +274,8 @@ Content-type: application/json
 	"description" : "my dogoo",
 	"created_at" : "2020:04:03:12:53",
 	"updated_at" : "2020:04:04:17:28",
-	"slug" : "12ESRGHUTEGO4765568",
-	"format" : "png"
+	"slug" : "9hjtv67dpk",
+	"type" : ".png",
 	"category_id": 1,
 	"tags": [
         {
@@ -389,7 +387,7 @@ PUT /categories/2
 Content-type : application/json
 {
 	"name" : "memes",
-	"description : "animal memes",
+	"description" : "animal memes"
 }
 ```
 
