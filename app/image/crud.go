@@ -39,28 +39,29 @@ func (i *Image) Validate() error {
 }
 
 func (repository *Repository) selectImageByID(id int64) (*Image, error) {
-	row := repository.Conn.QueryRow(`SELECT i.id, i.name, i.slug, i.description, i.type, i.created_at, i.updated_at, i.category_id 
-	FROM image i 
-	WHERE i.id=?;`, id)
+	row := repository.Conn.QueryRow(`SELECT i.id, i.name, i.slug, i.description, i.type, 
+	i.created_at, i.updated_at, i.category_id FROM image i WHERE i.id=?;`, id)
 	var name, slug, description, typeExt string
 	var createdAt, updatedAt time.Time
 	var categoryID int64
-	err := row.Scan(&id, &name, &slug, &description, &typeExt, &createdAt, &updatedAt, &categoryID)
-	if err != nil {
+	switch err := row.Scan(&id, &name, &slug, &description, &typeExt, &createdAt, &updatedAt, &categoryID); err {
+	case sql.ErrNoRows:
+		return nil, nil
+	case nil:
+		image := Image{
+			ID:          id,
+			Name:        name,
+			Slug:        slug,
+			Description: description,
+			Type:        typeExt,
+			CreatedAt:   createdAt,
+			UpdatedAt:   updatedAt,
+			CategoryID:  categoryID,
+		}
+		return &image, nil
+	default:
 		return nil, err
 	}
-	image := Image{
-		ID:          id,
-		Name:        name,
-		Slug:        slug,
-		Description: description,
-		Type:        typeExt,
-		CreatedAt:   createdAt,
-		UpdatedAt:   updatedAt,
-		CategoryID:  categoryID,
-	}
-
-	return &image, nil
 }
 
 type filterName string

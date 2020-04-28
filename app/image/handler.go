@@ -315,7 +315,11 @@ func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteErrorJSON(w, http.StatusBadRequest, "Could not check if image has already been uploaded")
 	}
 
-	log.Printf("image type: %s", image.Type)
+	if image == nil {
+		h.Logger.Infof("image metadata with id %d does not exists", id)
+		helpers.WriteErrorJSON(w, http.StatusBadRequest, "image id"+muxVars["id"]+" does not exist")
+		return
+	}
 
 	if image.Type != "" {
 		log.Printf("do you pass here?")
