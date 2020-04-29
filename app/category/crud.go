@@ -3,6 +3,7 @@ package category
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -13,11 +14,11 @@ type Repository struct {
 
 // Category struct
 type Category struct {
-	ID          int64     `json:"id"`
+	ID          int64     `json:"id,omitempty"`
 	Name        string    `json:"name,omitempty"`
 	Description string    `json:"description,omitempty"`
-	CreatedAt   time.Time `json:"created_at,omitempty"`
-	UpdatedAt   time.Time `json:"updated_at,omitempty"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 // Validate : interface for JSON backend validation
@@ -26,7 +27,13 @@ func (c *Category) Validate() error {
 	if c.Name == "" {
 		return fmt.Errorf("name cannot be empty")
 	}
+
+	if len(c.Name) > 255 {
+		return fmt.Errorf("name cannot be longer than 255 characters")
+	}
+
 	return nil
+
 }
 
 // SelectCategoryByID retrieves a product using its id
@@ -37,7 +44,7 @@ func (repository *Repository) SelectCategoryByID(id int64) (*Category, error) {
 	var createdAt, updatedAt time.Time
 	switch err := row.Scan(&id, &name, &description, &createdAt, &updatedAt); err {
 	case sql.ErrNoRows:
-		return nil, sql.ErrNoRows
+		return nil, nil
 	case nil:
 		category := Category{
 			ID:          id,
@@ -52,10 +59,36 @@ func (repository *Repository) SelectCategoryByID(id int64) (*Category, error) {
 	}
 }
 
+type filterName string
+
+const filterByDateOfUpdate filterName = "updated_at"
+
 // retrieveAllCategories stored in db
-func (repository *Repository) retrieveAllCategories() ([]*Category, error) {
-	rows, err := repository.Conn.Query("SELECT c.id, c.name, c.description, c.created_at, " +
-		"c.updated_at FROM category c ")
+func (repository *Repository) retrieveAllCategories(filters map[filterName]interface{}) ([]*Category, error) {
+	queryOrders := make([]string, 0)
+
+	// Filtering categories by date
+	if v, ok := filters[filterByDateOfUpdate]; ok {
+		if vv, ok := v.(string); ok {
+			switch vv {
+			case "asc":
+				queryOrders = append(queryOrders, "updated_at ASC LIMIT 3")
+			case "desc":
+				queryOrders = append(queryOrders, "updated_at DESC LIMIT 3")
+			}
+		}
+	}
+
+	queryFields := []string{
+		"c.id", "c.name", "c.description", "c.created_at", "c.updated_at",
+	}
+	query := fmt.Sprintf("SELECT %s FROM category c", strings.Join(queryFields, ", "))
+
+	if len(queryOrders) > 0 {
+		query += fmt.Sprintf("\nORDER BY %s", strings.Join(queryOrders, ", "))
+	}
+
+	rows, err := repository.Conn.Query(query)
 
 	if err != nil {
 		return nil, err
@@ -68,7 +101,7 @@ func (repository *Repository) retrieveAllCategories() ([]*Category, error) {
 	for rows.Next() {
 		err := rows.Scan(&id, &name, &description, &createdAt, &updatedAt)
 		if err != nil {
-			fmt.Println(err)
+			return nil, err
 		}
 		categories = append(categories, &Category{
 			ID:          id,

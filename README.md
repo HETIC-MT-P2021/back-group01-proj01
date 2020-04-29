@@ -6,11 +6,17 @@ This repository contains all Golang API code for the image gallery project
 
 ## Usage
 
-> Run the project 
 
 ```git config core.hooksPath .githooks```
+> Configure GitHooks
+
 
 ``` docker-compose up --build```
+> Run the project
+
+
+If you want to test the Backend API on Postman, you can use `elm_project.postman_collection.json`.
+
 
 ## Resources
 
@@ -18,28 +24,29 @@ This repository contains all Golang API code for the image gallery project
 
 > JSON Format
 
-| Field           | Type                | Description                       |
-| --------------- | ------------------- | --------------------------------  |
-| id              | int                 | id for the image entity           |
-| name            | string              | image name                        |
-| description     | string (text)       | image description (optional)      |
-| created_at      | string (y:m:d:hh:mm)| image creation date               |
-| updated_at      | string (y:m:d:hh:mm)| image update date                 |
-| tags            | [ string ]          | image tags                        |
-| category        | int                 | image category                    |
+| Field           | Type                  | Description                       |
+| --------------- | --------------------- | --------------------------------  |
+| id              | int                   | id for the image entity           |
+| name            | string                | image name                        |
+| description     | string (text)         | image description (optional)      |
+| created_at      | `string (y:m:d:hh:mm)`| image creation date               |
+| updated_at      | `string (y:m:d:hh:mm)`| image update date                 |
+| tags            | [ string ]            | image tags                        |
+| category_id     | int                   | image category id                 |
 
 > Go struct : Image
 
 | Field           | Type                | Description                       |
 | --------------- | ------------------- | --------------------------------  |
-| ID              | uint32              | id for the image entity           |
+| ID              | int64               | id for the image entity           |
 | Name            | string              | image name                        |
 | Description     | string              | image description (optional)      |
 | Slug            | string              | image slug for storage (generated)|
-| Format          | enum                | image format                      |
+| Type            | string              | image type                        |
 | CreatedAt       | `*time.Time`        | image creation date               |
 | UpdatedAt       | `*time.Time`        | image update date                 |
 | Tags            | `[]*Tags`           | image tags                        |
+| CategoryID      | int64               | image category id                 |
 | Category        | `*Category`         | image category                    |
 
 
@@ -47,19 +54,19 @@ This repository contains all Golang API code for the image gallery project
 
 > JSON Format
 
-| Field           | Type                | Description                       |
-| --------------- | ------------------- | --------------------------------  |
-| id              | int                 | id for the category entity        |
-| name            | string              | category name                     |
-| description     | string (text)       | category description (optional)   |
-| created_at      | string (y:m:d:hh:mm)| category creation date            |
-| updated_at      | string (y:m:d:hh:mm)| category update date              |
+| Field           | Type                  | Description                       |
+| --------------- | --------------------- | --------------------------------  |
+| id              | int                   | id for the category entity        |
+| name            | string                | category name                     |
+| description     | string (text)         | category description (optional)   |
+| created_at      | `string (y:m:d:hh:mm)`| category creation date            |
+| updated_at      | `string (y:m:d:hh:mm)`| category update date              |
 
 > Go struct : Category
 
 | Field           | Type                | Description                       |
 | --------------- | ------------------- | --------------------------------  |
-| ID              | uint32              | id for the category entity        |
+| ID              | int64               | id for the category entity        |
 | Name            | string              | category name                     |
 | Description     | string              | category description (optional)   |
 | CreatedAt       | `*time.Time`        | category creation date            |
@@ -70,31 +77,31 @@ This repository contains all Golang API code for the image gallery project
 
 > JSON Format
 
-| Field           | Type                | Description                       |
-| --------------- | ------------------- | --------------------------------  |
-| id              | int                 | id for the tag entity             |
-| name            | string              | tag name                          |
-| created_at      | string (y:m:d:hh:mm)| tag creation date                 |
-| updated_at      | string (y:m:d:hh:mm)| tag update date                   |
-| images          | [ string ]          | images related to the tag         |
+| Field           | Type                  | Description                       |
+| --------------- | --------------------- | --------------------------------  |
+| id              | int                   | id for the tag entity             |
+| name            | string                | tag name                          |
+| created_at      | `string (y:m:d:hh:mm)`| tag creation date                 |
+| updated_at      | `string (y:m:d:hh:mm)`| tag update date                   |
 
 > Go struct : Tags
 
 | Field           | Type                | Description                       |
 | --------------- | ------------------- | --------------------------------  |
-| ID              | uint32              | id for the tag entity             |
+| ID              | int64               | id for the tag entity             |
 | Name            | string              | tag name                          |
 | CreatedAt       | `*time.Time`        | tag creation date                 |
 | UpdatedAt       | `*time.Time`        | tag update date                   |
-| Images          | `[]*Image`          | images related to the tag         |
 
 ## Endpoints
 
 ### LIST 
 
-* [Get an image by ID](#get-an-image-by-id)
-* [Get all images](#get-all-images)
-* [Post an image](#post-an-image)
+* [Get an image metadata by ID](#get-an-image-by-id)
+* [Get all images metadata](#get-all-images)
+* [Post an image metadata](#post-an-image-metadata)
+* [Upload an image](#upload-an-image)
+* [Get an image](#post-an-image)
 * [Update an image](#update-an-image)
 * [Delete an image](#update-an-image)
 * [Get a category by ID](#get-a-category-by-id)
@@ -116,28 +123,27 @@ Content-type: application/json
 {
 	"id" : "1",
 	"name" : "cute_cat_picture.png",
-	"description : "i are developer i make computer beep boop beep beep boop",
-	"slug" : "12ERRGTEGOIUYFDFT18FFGSHH",
-	"format" : "png",
+	"description" : "i are developer i make computer beep boop beep beep boop",
+	"slug" : "9hjtv67dpk",
+	"type" : ".png",
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:06:08:23",
-	"category" : {
-	}
-	"tags" : [
-        {
-            "name": "cat"
-        },
-        {
-            "name": "cute"
-        }
-    ],
+	"category_id": 1,
+	"tags" : ["cat","cute"]
 }
 ```
 
 ### Get all images <a name="get-all-images"></a>
 
 ```http
-GET /images               // can be filtered by name, creation date, tag
+GET /images     
+
+// can be filtered by update date tag and/or category
+
+GET /images?updated_at=asc
+GET /images?updated_at=desc
+GET /images?category=1
+GET /images?tag=1
 Content-type : application/json
 ```
 ```http
@@ -147,59 +153,37 @@ Content-type: application/json
 {
 	"id" : 1,
 	"name" : "cute_cat_picture.png",
-	"description : "i are developer i make computer beep boop beep beep boop",
-	"slug" : "12ERRGTEGOIUYFDFT18FFGSHH",
-	"format" : "png",
+	"description" : "i are developer i make computer beep boop beep beep boop",
+	"slug" : "9hjtv67dpk",
+	"type" : ".png",
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:05:15:53",
-	"category" : {
-	}
-	"tags" : [
-        {
-            "name": "cat"
-        },
-        {
-            "name": "cute"
-        }
-    ],
+	"category_id" : 1,
+	"tags" : ["cat","cute"]
 },
 {
 	"id" : 2,
 	"name" : "cute_dog_picture.png",
-	"description : "doggo",
-	"slug" : "12ERRGTEGOIUYFDFT18FFGSHH",
-	"format" : "png",
+	"description" : "doggo",
+	"slug" : "9hjtv67dpk",
+	"type" : ".png",
 	"created_at" : "2020:04:03:12:53",
 	"updated_at" : "2020:04:03:12:53",
-	"category" : :id,
-	"tags" : [
-        {
-            "name": "dog"
-        },
-        {
-            "name": "cute"
-        }
-    ],
+	"category_id" : 1,
+	"tags" : ["cat","cute"]
 }
 ```
-// TODO : update when file upload system is in place
-### Post an image <a name="post-an-image"></a> 
+
+### Post an image metadata<a name="post-an-image-metadata"></a> 
 
 ``` http
 POST /images
 Content-type : application/json
 {
 	"name" : "cute_dog_picture.png",
-	"description : "doggo",
-	"category" : :id,
-	"tags" : [
-        {
-            "name": "dog"
-        },
-        {
-            "name": "cute"
-        }
-    ],
+	"description" : "doggo",
+	"category_id" : 1,
+	"tags" : ["dog","cute"]
 }
 ```
 
@@ -210,21 +194,30 @@ Content-type: application/json
 {
 	"id" : 2,
 	"name" : "cute_dog_picture.png",
-	"description : "doggo",
+	"description" : "doggo",
 	"created_at" : "2020:04:03:12:53",
 	"updated_at" : "2020:04:03:12:53",
-	"slug" : "12ESRGHUTEGO4765568",
-	"format" : "png"
-	"category" : :id,
-	"tags" : [
-        {
-            "name": "dog"
-        },
-        {
-            "name": "cute"
-        }
-    ],
+	"slug" : "9hjtv67dpk",
+	"type" : ".png",
+	"category_id" : 1,
+	"tags" : ["dog","cute"]
 }
+
+```
+
+### Upload an image <a name="upload-an-image"></a>
+``` http
+POST /upload/{image_id}
+Content-type : multipart/form-data
+
+key: "file"
+```
+
+### Get an image <a name="get-an-image"></a> 
+
+``` http
+GET /uploads/{image_id}/{image_slug}.{image_extension)
+Content-type : application/json
 
 ```
 
@@ -235,7 +228,8 @@ PUT /images/2
 Content-type : application/json
 {
 	"name" : "doggy",
-	"description : "my dogoo",
+	"description" : "my dogoo",
+	"tags": ["dog", "doggy"]
 }
 ```
 
@@ -246,20 +240,13 @@ Content-type: application/json
 {
 	"id" : 2,
 	"name" : "doggy",
-	"description : "my dogoo",
+	"description" : "my dogoo",
 	"created_at" : "2020:04:03:12:53",
 	"updated_at" : "2020:04:04:17:28",
-	"slug" : "12ESRGHUTEGO4765568",
-	"format" : "png"
-	"category" : :id,
-	"tags" : [
-        {
-            "name": "dog"
-        },
-        {
-            "name": "cute"
-        }
-    ],
+	"slug" : "9hjtv67dpk",
+	"type" : ".png",
+	"category_id": 1,
+	"tags" : ["dog","doggy"]
 }
 
 ```
@@ -267,7 +254,8 @@ Content-type: application/json
 ### Delete an image <a name="delete-an-image"></a>
 
 ``` http
-DELETE /images/2
+DELETE /images/2                       // deletes image only
+DELETE /images/2?delete_mode=hard      // deletes both image and image metadata
 Content-type : application/json
 ```
 
@@ -289,7 +277,7 @@ Content-type: application/json
 {
 	"id" : 1,
 	"name" : "cars",
-	"description : "vroum",
+	"description" : "vroum",
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:06:08:23",
 }
@@ -298,7 +286,8 @@ Content-type: application/json
 ### Get all categories <a name="get-all-categories"></a>
 
 ```http
-GET /categories                                   // can be filtered by name, creation date 
+GET /categories                          
+GET /categories?updated_at=desc         
 Content-type : application/json
 ```
 ```http
@@ -308,15 +297,15 @@ Content-type: application/json
 {
 	"id" : 1,
 	"name" : "cars",
-	"description : "vroum",
+	"description" : "vroum",
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:05:15:53",
 }, 
 {
 	"id" : 2,
 	"name" : "animals",
-	"description : "A collection of animal images",
-	"category" : :id,
+	"description" : "A collection of animal images",
+	"category_id": 1,
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:05:15:53",
 }
@@ -333,7 +322,7 @@ POST /categories
 Content-type : application/json
 {
 	"name" : "animals",
-	"description : "A collection of animal images"
+	"description" : "A collection of animal images"
 }
 ```
 
@@ -344,7 +333,7 @@ Content-type: application/json
 {
 	"id" : 2,
 	"name" : "animals",
-	"description : "A collection of animal images",
+	"description" : "A collection of animal images",
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:05:15:53",
 }
@@ -358,7 +347,7 @@ PUT /categories/2
 Content-type : application/json
 {
 	"name" : "memes",
-	"description : "animal memes",
+	"description" : "animal memes"
 }
 ```
 
@@ -369,7 +358,7 @@ Content-type: application/json
 {
 	"id" : 2,
 	"name" : "memes",
-	"description : "animal memes",
+	"description" : "animal memes",
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:06:08:23",
 }

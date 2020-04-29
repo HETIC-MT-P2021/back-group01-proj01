@@ -29,7 +29,7 @@ type Config struct {
 func Connect() error {
 	cfg := Config{}
 	if err := env.Parse(&cfg); err != nil {
-		fmt.Printf("%+v\n", err)
+		return fmt.Errorf("%+v", err)
 	}
 	dsn := cfg.DbUser + ":" + cfg.DbPassword + "@" + cfg.DbHost + "/" + cfg.
 		DbName + "?parseTime=true&charset=utf8"
@@ -49,7 +49,7 @@ func Connect() error {
 		dbErr = db.Ping()
 		if dbErr != nil {
 			if i < 3 {
-				logger.Infof("Db connection failed, %d retry : %v", i, dbErr)
+				logger.Infof("db connection failed, %d retry : %v", i, dbErr)
 				time.Sleep(10 * time.Second)
 			}
 			continue

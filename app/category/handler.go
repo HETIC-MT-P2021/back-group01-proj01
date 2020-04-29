@@ -51,6 +51,7 @@ func (h *Handler) Routes() router.Routes {
 }
 
 func (h *Handler) getCategoryByID(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
 
 	muxVars := mux.Vars(r)
 	db := database.DbConn
@@ -71,7 +72,8 @@ func (h *Handler) getCategoryByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if category == nil {
-		helpers.WriteJSON(w, http.StatusNotFound, category)
+		h.Logger.Infof("tried to retrieve a category that does not exist with id %d", id)
+		helpers.WriteJSON(w, http.StatusNotFound, "this category does not exist")
 		return
 	}
 
@@ -80,10 +82,19 @@ func (h *Handler) getCategoryByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) getAllCategories(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
+
 	db := database.DbConn
 	repository := Repository{Conn: db}
 
-	categories, err := repository.retrieveAllCategories()
+	filters := make(map[filterName]interface{})
+
+	order := r.URL.Query().Get(string(filterByDateOfUpdate))
+	if order != "" {
+		filters[filterByDateOfUpdate] = order
+	}
+
+	categories, err := repository.retrieveAllCategories(filters)
 	if err != nil {
 		h.Logger.Error(err)
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to retrieve categories")
@@ -95,6 +106,7 @@ func (h *Handler) getAllCategories(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) createCategory(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
 
 	db := database.DbConn
 	repository := Repository{Conn: db}
@@ -120,6 +132,8 @@ func (h *Handler) createCategory(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) updateCategory(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
+
 	muxVars := mux.Vars(r)
 	id, err := helpers.ParseInt64(muxVars["id"])
 	if err != nil {
@@ -146,6 +160,8 @@ func (h *Handler) updateCategory(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) deleteCategory(w http.ResponseWriter, r *http.Request) {
+	h.Logger.Infof("calling %v", r.URL.Path)
+
 	muxVars := mux.Vars(r)
 	id, err := helpers.ParseInt64(muxVars["id"])
 	if err != nil {
