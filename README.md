@@ -17,6 +17,8 @@ This repository contains all Golang API code for the image gallery project
 
 If you want to test the Backend API on Postman, you can use `elm_project.postman_collection.json`.
 
+If you want to see an image after uploading it , you can see it on `http:localhost:8000/{image_id}/{image_slug).{image_extension}`
+
 
 ## Resources
 
