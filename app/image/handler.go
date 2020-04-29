@@ -76,6 +76,7 @@ func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
 
 	repository := Repository{Conn: db}
 	categoryRepository := category.Repository{Conn: db}
+	tagRepository := tag.Repository{Conn: db}
 
 	id, err := helpers.ParseInt64(muxVars["id"])
 	if err != nil {
@@ -99,7 +100,14 @@ func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
 
 	imageSelected.Category = categoryRetrieved
 
-	// TODO(athenais) add tags
+	tags, err := tagRepository.GetAllTagsByImageID(id)
+	if err != nil {
+		h.Logger.Error(err)
+		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to retrieve tags")
+		return
+	}
+
+	imageSelected.Tags = tags
 
 	h.Logger.Infof("image retrieved: %v", imageSelected)
 	helpers.WriteJSON(w, http.StatusOK, imageSelected)
@@ -130,7 +138,7 @@ func (h *Handler) getAllImages(w http.ResponseWriter, r *http.Request) {
 		filters[filterByCategory] = categoryID
 	}
 
-	images, err := repository.retrieveAllImages(filters)
+	images, err := repository.retrieveAllImages(filters, db)
 	if err != nil {
 		h.Logger.Error(err)
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to retrieve images")
@@ -333,7 +341,6 @@ func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	fileSize := handle.Size
-
 	// validate file size
 	if fileSize > maxUploadSize {
 		helpers.WriteErrorJSON(w, http.StatusBadRequest, "File cannot exceed 2MB")

@@ -28,6 +28,10 @@ func (c *Category) Validate() error {
 		return fmt.Errorf("name cannot be empty")
 	}
 
+	if len(c.Name) > 255 {
+		return fmt.Errorf("name cannot be longer than 255 characters")
+	}
+
 	return nil
 
 }
@@ -40,7 +44,7 @@ func (repository *Repository) SelectCategoryByID(id int64) (*Category, error) {
 	var createdAt, updatedAt time.Time
 	switch err := row.Scan(&id, &name, &description, &createdAt, &updatedAt); err {
 	case sql.ErrNoRows:
-		return nil, sql.ErrNoRows
+		return nil, nil
 	case nil:
 		category := Category{
 			ID:          id,

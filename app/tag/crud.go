@@ -56,8 +56,7 @@ func (repository *Repository) SelectTagByID(id int64) (*Tag, error) {
 
 // retrieveAllTags stored in db
 func (repository *Repository) retrieveAllTags() ([]*Tag, error) {
-	rows, err := repository.Conn.Query("SELECT t.id, t.name, t.created_at, " +
-		"t.updated_at FROM tag t ")
+	rows, err := repository.Conn.Query("SELECT t.id, t.name, t.created_at, t.updated_at FROM tag t ")
 
 	if err != nil {
 		return nil, err
@@ -144,4 +143,35 @@ func (repository *Repository) deleteTag(id int64) (int64, error) {
 		return 0, err
 	}
 	return res.RowsAffected()
+}
+
+// GetAllTagsByImageID gets all tags linked to an image
+func (repository *Repository) GetAllTagsByImageID(id int64) ([]*Tag, error) {
+
+	rows, err := repository.Conn.Query("SELECT t.id, t.name, t.created_at, t.updated_at "+
+		"FROM tag t INNER JOIN image_tag it ON it.tag_id = t.id "+
+		"INNER JOIN image i ON it.image_id = i.id WHERE i.id = (?);", id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var tagID int64
+	var name string
+	var createdAt, updatedAt time.Time
+	var tags []*Tag
+	for rows.Next() {
+		err := rows.Scan(&tagID, &name, &createdAt, &updatedAt)
+		if err != nil {
+			return nil, err
+		}
+		tags = append(tags, &Tag{
+			ID:        tagID,
+			Name:      name,
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
+		})
+	}
+
+	return tags, nil
 }
