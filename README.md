@@ -225,7 +225,8 @@ PUT /images/2
 Content-type : application/json
 {
 	"name" : "doggy",
-	"description" : "my dogoo"
+	"description" : "my dogoo",
+	"tags": ["dog", "doggy"]
 }
 ```
 
@@ -242,7 +243,7 @@ Content-type: application/json
 	"slug" : "9hjtv67dpk",
 	"type" : ".png",
 	"category_id": 1,
-	"tags" : ["dog","cute","love"]
+	"tags" : ["dog","doggy"]
 }
 
 ```
