@@ -285,8 +285,8 @@ func (h *Handler) deleteImage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	h.Logger.Infof("image fully deleted")
-	helpers.WriteJSON(w, http.StatusNoContent, "Image fully deleted")
+	h.Logger.Infof("image deleted")
+	helpers.WriteJSON(w, http.StatusNoContent, "Image deleted")
 
 }
 
