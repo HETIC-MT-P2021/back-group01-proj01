@@ -168,6 +168,7 @@ func (h *Handler) deleteCategory(w http.ResponseWriter, r *http.Request) {
 		h.Logger.Error(err)
 		return
 	}
+
 	db := database.DbConn
 	repository := Repository{Conn: db}
 

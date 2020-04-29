@@ -256,6 +256,12 @@ func (h *Handler) deleteImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if image == nil {
+		h.Logger.Error(err)
+		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "this image does not exist")
+		return
+	}
+
 	// Hard delete mode deletes both image and image metadata
 	if r.URL.Query().Get("delete_mode") == "hard" {
 
@@ -266,19 +272,20 @@ func (h *Handler) deleteImage(w http.ResponseWriter, r *http.Request) {
 		}
 
 		h.Logger.Infof("%d image deleted with ID: %v", rowsAffected, id)
-		helpers.WriteJSON(w, http.StatusNoContent, "Image metadata deleted")
 	}
 
 	path := UploadPath + muxVars["id"] + "/" + image.Slug + image.Type
 
-	err = os.Remove(path)
-	if err != nil {
-		h.Logger.Error(err)
-		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "could not delete image")
-		return
+	if _, err := os.Stat(path); os.IsExist(err) {
+		err = os.Remove(path)
+		if err != nil {
+			h.Logger.Error(err)
+			helpers.WriteErrorJSON(w, http.StatusInternalServerError, "could not delete image")
+			return
+		}
 	}
 
-	h.Logger.Infof("%d image fully deleted. ID : %d \n PATH: %s", id, path)
+	h.Logger.Infof("image fully deleted")
 	helpers.WriteJSON(w, http.StatusNoContent, "Image fully deleted")
 
 }
