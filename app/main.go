@@ -1,7 +1,6 @@
 package main
 
 import (
-	"image_gallery/tag"
 	"net/http"
 	"os"
 	"strings"
@@ -37,11 +36,6 @@ func main() {
 
 	// Images handler
 	apiRouter.AddHandler(&image.Handler{
-		Logger: logger,
-	})
-
-	// Tags handler
-	apiRouter.AddHandler(&tag.Handler{
 		Logger: logger,
 	})
 

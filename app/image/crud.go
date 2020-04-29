@@ -24,9 +24,10 @@ type Image struct {
 	Type        string             `json:"type,omitempty"`
 	CreatedAt   time.Time          `json:"created_at"`
 	UpdatedAt   time.Time          `json:"updated_at"`
-	CategoryID  int64              `json:"category_id"`
+	CategoryID  int64              `json:"category_id,omitempty"`
 	Category    *category.Category `json:"category,omitempty"`
-	Tags        []*tag.Tag         `json:"tags"`
+	TagsNames   []string           `json:"tags"`
+	Tags        []*tag.Tag         `json:"-"`
 }
 
 // Validate : interface for JSON backend validation
@@ -179,7 +180,7 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 			return nil, fmt.Errorf("could not get tags : %v", err)
 		}
 
-		image.Tags = tags
+		image.TagsNames = tags
 
 		images = append(images, &image)
 	}

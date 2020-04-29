@@ -3,6 +3,7 @@ package tag
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -32,10 +33,12 @@ func (t *Tag) Validate() error {
 	return nil
 }
 
-// SelectTagByID retrieves a product using its id
-func (repository *Repository) SelectTagByID(id int64) (*Tag, error) {
-	row := repository.Conn.QueryRow("SELECT t.id, t.name, t.created_at, t.updated_at "+
-		"FROM tag t WHERE t.id=(?)", id)
+// SelectTagBy retrieves a tag by any field (whereColumn) and any value (whereValue)
+func (repository *Repository) SelectTagBy(whereColumn string, whereValue interface{}) (*Tag, error) {
+	query := "SELECT t.id, t.name, t.created_at, t.updated_at FROM tag t WHERE t." + whereColumn + "=(?)"
+	log.Printf("query :%v", query)
+	row := repository.Conn.QueryRow(query, whereValue)
+	var id int64
 	var name string
 	var createdAt, updatedAt time.Time
 	switch err := row.Scan(&id, &name, &createdAt, &updatedAt); err {
@@ -48,38 +51,11 @@ func (repository *Repository) SelectTagByID(id int64) (*Tag, error) {
 			CreatedAt: createdAt,
 			UpdatedAt: updatedAt,
 		}
+		log.Printf("tag:%v", tag)
 		return &tag, nil
 	default:
 		return nil, err
 	}
-}
-
-// retrieveAllTags stored in db
-func (repository *Repository) retrieveAllTags() ([]*Tag, error) {
-	rows, err := repository.Conn.Query("SELECT t.id, t.name, t.created_at, t.updated_at FROM tag t ")
-
-	if err != nil {
-		return nil, err
-	}
-
-	var id int64
-	var name string
-	var createdAt, updatedAt time.Time
-	var tags []*Tag
-	for rows.Next() {
-		err := rows.Scan(&id, &name, &createdAt, &updatedAt)
-		if err != nil {
-			return nil, err
-		}
-		tags = append(tags, &Tag{
-			ID:        id,
-			Name:      name,
-			CreatedAt: createdAt,
-			UpdatedAt: updatedAt,
-		})
-	}
-
-	return tags, nil
 }
 
 // InsertTag posts a new tag
@@ -109,68 +85,25 @@ func (repository *Repository) InsertTag(tag *Tag) error {
 	return nil
 }
 
-// updateTag by ID
-func (repository *Repository) updateTag(tag *Tag, id int64) error {
-	stmt, err := repository.Conn.Prepare("UPDATE tag SET name=(?), " +
-		"updated_at=(?) WHERE id=(?)")
-	if err != nil {
-		return err
-	}
-	var createdAt time.Time
-	row := repository.Conn.QueryRow("SELECT c.created_at FROM tag c WHERE c.id=(?)", id)
-	if err := row.Scan(&createdAt); err != nil {
-		return err
-	}
-	tag.CreatedAt = createdAt
-	tag.UpdatedAt = time.Now()
-
-	_, errExec := stmt.Exec(tag.Name, tag.UpdatedAt, id)
-
-	if errExec != nil {
-		return errExec
-	}
-
-	tag.ID = id
-
-	return nil
-}
-
-// deleteTag by ID
-func (repository *Repository) deleteTag(id int64) (int64, error) {
-
-	res, err := repository.Conn.Exec("DELETE FROM tag WHERE id=(?)", id)
-	if err != nil {
-		return 0, err
-	}
-	return res.RowsAffected()
-}
-
 // GetAllTagsByImageID gets all tags linked to an image
-func (repository *Repository) GetAllTagsByImageID(id int64) ([]*Tag, error) {
+func (repository *Repository) GetAllTagsByImageID(id int64) ([]string, error) {
 
-	rows, err := repository.Conn.Query("SELECT t.id, t.name, t.created_at, t.updated_at "+
+	rows, err := repository.Conn.Query("SELECT t.name "+
 		"FROM tag t INNER JOIN image_tag it ON it.tag_id = t.id "+
 		"INNER JOIN image i ON it.image_id = i.id WHERE i.id = (?);", id)
-
 	if err != nil {
 		return nil, err
 	}
 
-	var tagID int64
 	var name string
-	var createdAt, updatedAt time.Time
-	var tags []*Tag
+	var tags []string
+
 	for rows.Next() {
-		err := rows.Scan(&tagID, &name, &createdAt, &updatedAt)
+		err := rows.Scan(&name)
 		if err != nil {
 			return nil, err
 		}
-		tags = append(tags, &Tag{
-			ID:        tagID,
-			Name:      name,
-			CreatedAt: createdAt,
-			UpdatedAt: updatedAt,
-		})
+		tags = append(tags, name)
 	}
 
 	return tags, nil
