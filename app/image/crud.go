@@ -92,7 +92,7 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 	scan = append(scan, &id, &name, &slug, &description, &typeExt, &createdAt, &updatedAt, &categoryID)
 
 	queryFields := []string{
-		"i.id", "i.name", "i.slug", "i.description", "i.type", "i.created_at", "i.updated_at", 
+		"i.id", "i.name", "i.slug", "i.description", "i.type", "i.created_at", "i.updated_at",
 		"i.category_id",
 	}
 
@@ -170,8 +170,8 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 			Category: &category.Category{
 				Name:        categoryName,
 				Description: categoryDescription,
-				CreatedAt: categCreatedAt,
-				UpdatedAt: categUpdatedAt,
+				CreatedAt:   categCreatedAt,
+				UpdatedAt:   categUpdatedAt,
 			},
 		}
 
