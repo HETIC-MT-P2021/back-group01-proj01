@@ -126,14 +126,7 @@ Content-type: application/json
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:06:08:23",
 	"category_id": 1,
-	"tags" : [
-        {
-            "name": "cat"
-        },
-        {
-            "name": "cute"
-        }
-    ],
+	"tags" : ["cat","cute"]
 }
 ```
 
@@ -163,14 +156,7 @@ Content-type: application/json
 	"created_at" : "2020:04:05:15:53",
 	"updated_at" : "2020:04:05:15:53",
 	"category_id" : 1,
-	"tags" : [
-        {
-            "name": "cat"
-        },
-        {
-            "name": "cute"
-        }
-    ]
+	"tags" : ["cat","cute"]
 },
 {
 	"id" : 2,
@@ -181,14 +167,7 @@ Content-type: application/json
 	"created_at" : "2020:04:03:12:53",
 	"updated_at" : "2020:04:03:12:53",
 	"category_id" : 1,
-	"tags" : [
-        {
-            "name": "dog"
-        },
-        {
-            "name": "cute"
-        }
-    ]
+	"tags" : ["cat","cute"]
 }
 ```
 
@@ -201,14 +180,7 @@ Content-type : application/json
 	"name" : "cute_dog_picture.png",
 	"description" : "doggo",
 	"category_id" : 1,
-	"tags" : [
-        {
-            "name": "dog"
-        },
-        {
-            "name": "cute"
-        }
-    ]
+	"tags" : ["dog","cute"]
 }
 ```
 
@@ -225,14 +197,7 @@ Content-type: application/json
 	"slug" : "9hjtv67dpk",
 	"type" : ".png",
 	"category_id" : 1,
-	"tags" : [
-        {
-            "name": "dog"
-        },
-        {
-            "name": "cute"
-        }
-    ]
+	"tags" : ["dog","cute"]
 }
 
 ```
@@ -277,17 +242,7 @@ Content-type: application/json
 	"slug" : "9hjtv67dpk",
 	"type" : ".png",
 	"category_id": 1,
-	"tags": [
-        {
-    		"name": "dog"
-    	},
-    	{
-    		"name": "cute"
-    	},
-    	{
-    		"name": "love"
-    	}
-    ]
+	"tags" : ["dog","cute","love"]
 }
 
 ```

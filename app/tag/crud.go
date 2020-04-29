@@ -3,7 +3,6 @@ package tag
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"time"
 )
 
@@ -36,7 +35,6 @@ func (t *Tag) Validate() error {
 // SelectTagBy retrieves a tag by any field (whereColumn) and any value (whereValue)
 func (repository *Repository) SelectTagBy(whereColumn string, whereValue interface{}) (*Tag, error) {
 	query := "SELECT t.id, t.name, t.created_at, t.updated_at FROM tag t WHERE t." + whereColumn + "=(?)"
-	log.Printf("query :%v", query)
 	row := repository.Conn.QueryRow(query, whereValue)
 	var id int64
 	var name string
@@ -51,7 +49,6 @@ func (repository *Repository) SelectTagBy(whereColumn string, whereValue interfa
 			CreatedAt: createdAt,
 			UpdatedAt: updatedAt,
 		}
-		log.Printf("tag:%v", tag)
 		return &tag, nil
 	default:
 		return nil, err
