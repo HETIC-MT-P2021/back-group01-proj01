@@ -101,9 +101,9 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 		if vv, ok := v.(string); ok {
 			switch vv {
 			case "asc":
-				queryOrders = append(queryOrders, "updated_at ASC")
+				queryOrders = append(queryOrders, "i.updated_at ASC")
 			case "desc":
-				queryOrders = append(queryOrders, "updated_at DESC")
+				queryOrders = append(queryOrders, "i.updated_at DESC")
 			}
 		}
 	}
