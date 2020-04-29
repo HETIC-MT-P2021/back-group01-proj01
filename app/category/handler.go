@@ -72,7 +72,8 @@ func (h *Handler) getCategoryByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if category == nil {
-		helpers.WriteJSON(w, http.StatusNotFound, category)
+		h.Logger.Infof("tried to retrieve a category that does not exist with id %d", id)
+		helpers.WriteJSON(w, http.StatusNotFound, "this category does not exist")
 		return
 	}
 

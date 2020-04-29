@@ -76,6 +76,7 @@ func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
 
 	repository := Repository{Conn: db}
 	categoryRepository := category.Repository{Conn: db}
+	tagRepository := tag.Repository{Conn: db}
 
 	id, err := helpers.ParseInt64(muxVars["id"])
 	if err != nil {
@@ -99,7 +100,14 @@ func (h *Handler) getImagebyID(w http.ResponseWriter, r *http.Request) {
 
 	imageSelected.Category = categoryRetrieved
 
-	// TODO(athenais) add tags
+	tags, err := tagRepository.GetAllTagsByImageID(id)
+	if err != nil {
+		h.Logger.Error(err)
+		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to retrieve tags")
+		return
+	}
+
+	imageSelected.TagsNames = tags
 
 	h.Logger.Infof("image retrieved: %v", imageSelected)
 	helpers.WriteJSON(w, http.StatusOK, imageSelected)
@@ -130,7 +138,7 @@ func (h *Handler) getAllImages(w http.ResponseWriter, r *http.Request) {
 		filters[filterByCategory] = categoryID
 	}
 
-	images, err := repository.retrieveAllImages(filters)
+	images, err := repository.retrieveAllImages(filters, db)
 	if err != nil {
 		h.Logger.Error(err)
 		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to retrieve images")
@@ -169,40 +177,18 @@ func (h *Handler) createImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if imageToCreate.Tags != nil {
-		for _, tagFromImage := range imageToCreate.Tags {
-
-			id, err := imageRepository.checkIfRowExists("tag", "name", tagFromImage.Name)
-			if err != nil {
-				h.Logger.Error(err)
-				helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to check if tag exists")
-				return
-			}
-
-			tagFromImage.ID = id
-			if id == 0 {
-				err = tagRepository.InsertTag(tagFromImage)
-				if err != nil {
-					h.Logger.Error(err)
-					helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to insert tag")
-					return
-				}
-			}
-
-			err = imageRepository.linkTagToImage(imageToCreate.ID, tagFromImage.ID)
-			if err != nil {
-				h.Logger.Error(err)
-				helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to insert tag")
-				return
-			}
+	if imageToCreate.TagsNames != nil {
+		err = saveTags(imageRepository, tagRepository, &imageToCreate)
+		if err != nil {
+			h.Logger.Error(err)
+			helpers.WriteErrorJSON(w, http.StatusInternalServerError, "could not save tags linked to image")
 		}
 	}
 
 	categoryRetrieved, err := categoryRepository.SelectCategoryByID(imageToCreate.CategoryID)
 	if err != nil {
 		h.Logger.Error(err)
-		helpers.WriteErrorJSON(w, http.StatusInternalServerError,
-			"unable to retrieve image category")
+		helpers.WriteErrorJSON(w, http.StatusInternalServerError, "unable to retrieve image category")
 		return
 	}
 	imageToCreate.Category = categoryRetrieved
@@ -222,6 +208,7 @@ func (h *Handler) updateImage(w http.ResponseWriter, r *http.Request) {
 	}
 	db := database.DbConn
 	repository := Repository{Conn: db}
+	tagRepository := tag.Repository{Conn: db}
 
 	var image Image
 
@@ -235,6 +222,14 @@ func (h *Handler) updateImage(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		h.Logger.Error(err)
 		return
+	}
+
+	if image.TagsNames != nil {
+		err = saveTags(repository, tagRepository, &image)
+		if err != nil {
+			h.Logger.Error(err)
+			helpers.WriteErrorJSON(w, http.StatusInternalServerError, "could not save tags linked to image")
+		}
 	}
 
 	h.Logger.Infof("updated image: %v", image)
@@ -333,7 +328,6 @@ func (h *Handler) upload(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	fileSize := handle.Size
-
 	// validate file size
 	if fileSize > maxUploadSize {
 		helpers.WriteErrorJSON(w, http.StatusBadRequest, "File cannot exceed 2MB")
@@ -394,5 +388,35 @@ func saveFile(w http.ResponseWriter, file multipart.File, handle *multipart.File
 	}
 
 	helpers.WriteJSON(w, http.StatusCreated, "File uploaded successfully!.")
+	return nil
+}
+
+func saveTags(imageRepository Repository, tagRepository tag.Repository, imageTagged *Image) error {
+	for _, tagName := range imageTagged.TagsNames {
+
+		tagByName, err := tagRepository.SelectTagBy("name", tagName)
+		if err != nil {
+			return fmt.Errorf("could not check if tag already exists %v", err)
+		}
+
+		if tagByName != nil {
+			err = imageRepository.linkTagToImage(imageTagged.ID, tagByName.ID)
+			if err != nil {
+				return fmt.Errorf("could not save tag %v", err)
+			}
+			continue
+		}
+
+		newTag := &tag.Tag{Name: tagName}
+
+		err = tagRepository.InsertTag(newTag)
+		if err != nil {
+			return fmt.Errorf("could not save tag %v", err)
+		}
+		err = imageRepository.linkTagToImage(imageTagged.ID, newTag.ID)
+		if err != nil {
+			return fmt.Errorf("could not save tag %v", err)
+		}
+	}
 	return nil
 }

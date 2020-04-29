@@ -17,8 +17,8 @@ type Category struct {
 	ID          int64     `json:"id,omitempty"`
 	Name        string    `json:"name,omitempty"`
 	Description string    `json:"description,omitempty"`
-	CreatedAt   time.Time `json:"created_at,omitempty"`
-	UpdatedAt   time.Time `json:"updated_at,omitempty"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 // Validate : interface for JSON backend validation
@@ -26,6 +26,10 @@ func (c *Category) Validate() error {
 
 	if c.Name == "" {
 		return fmt.Errorf("name cannot be empty")
+	}
+
+	if len(c.Name) > 255 {
+		return fmt.Errorf("name cannot be longer than 255 characters")
 	}
 
 	return nil
@@ -40,7 +44,7 @@ func (repository *Repository) SelectCategoryByID(id int64) (*Category, error) {
 	var createdAt, updatedAt time.Time
 	switch err := row.Scan(&id, &name, &description, &createdAt, &updatedAt); err {
 	case sql.ErrNoRows:
-		return nil, sql.ErrNoRows
+		return nil, nil
 	case nil:
 		category := Category{
 			ID:          id,

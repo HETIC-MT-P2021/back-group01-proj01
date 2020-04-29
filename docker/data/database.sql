@@ -1,3 +1,13 @@
+/*
+    This file is used by the docker-compose build command to build the mysql db
+    
+    Tables:
+    * category : stores categories (id, name, desc, creation, update)
+    * image : stores images (id, name, desc, type, creation, update, category ID)
+    * tag : stores tags (id, name, creation date)
+    * image_tag : links images to tags by ids (Many to Many relation)
+*/
+
 CREATE TABLE IF NOT EXISTS category (
     id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
     name VARCHAR(255),
@@ -37,7 +47,13 @@ CREATE TABLE IF NOT EXISTS image_tag (
 );
 
 
-# sample starter data
+/*
+    Starter sample data
+    
+    3 categories with ids 1 to 3
+    7 images metadata with ids 1 to 7
+    11 tags with ids 1 to 11, linked to images
+*/
 
 INSERT INTO `category` (`id`, `name`, `description`, `created_at`, `updated_at`) VALUES
 ('1', 'holidays', 'a collection of holidays pictures', '2020-04-28 19:25:05', '2020-04-28 19:25:05'),
@@ -52,6 +68,19 @@ INSERT INTO `image` (`id`, `name`, `slug`, `description`, `type`, `created_at`, 
 ('5', 'car', '8paa447pfk', 'car is fast ', '', '2020-04-28 19:30:17', '2020-04-28 19:30:55', '3'),
 ('6', 'cat', '2oqn4u7hhx', 'A cute cat', '', '2020-04-28 19:33:52', '2020-04-28 19:33:52', '2'),
 ('7', 'dog', '9hjtv67dpk', 'A cute dog', '', '2020-04-28 19:35:06', '2020-04-28 19:35:06', '2');
+
+INSERT INTO `tag` (`id`, `name`, `created_at`, `updated_at`) VALUES
+('1', 'pool', '2020-04-28 19:25:49', '2020-04-28 19:25:49'),
+('2', 'holidays', '2020-04-28 19:25:49', '2020-04-28 19:25:49'),
+('3', 'sun', '2020-04-28 19:25:49', '2020-04-28 19:25:49'),
+('4', 'car', '2020-04-28 19:29:47', '2020-04-28 19:29:47'),
+('5', 'fast', '2020-04-28 19:29:47', '2020-04-28 19:29:47'),
+('6', 'red', '2020-04-28 19:29:47', '2020-04-28 19:29:47'),
+('7', 'grey', '2020-04-28 19:30:02', '2020-04-28 19:30:02'),
+('8', 'cat', '2020-04-28 19:33:52', '2020-04-28 19:33:52'),
+('9', 'cute', '2020-04-28 19:33:52', '2020-04-28 19:33:52'),
+('10', 'love', '2020-04-28 19:33:52', '2020-04-28 19:33:52'),
+('11', 'dog', '2020-04-28 19:35:06', '2020-04-28 19:35:06');
 
 INSERT INTO `image_tag` (`image_id`, `tag_id`) VALUES
 ('1', '1'),
@@ -75,17 +104,4 @@ INSERT INTO `image_tag` (`image_id`, `tag_id`) VALUES
 ('7', '11'),
 ('7', '9'),
 ('7', '10');
-
-INSERT INTO `tag` (`id`, `name`, `created_at`, `updated_at`) VALUES
-('1', 'pool', '2020-04-28 19:25:49', '2020-04-28 19:25:49'),
-('2', 'holidays', '2020-04-28 19:25:49', '2020-04-28 19:25:49'),
-('3', 'sun', '2020-04-28 19:25:49', '2020-04-28 19:25:49'),
-('4', 'car', '2020-04-28 19:29:47', '2020-04-28 19:29:47'),
-('5', 'fast', '2020-04-28 19:29:47', '2020-04-28 19:29:47'),
-('6', 'red', '2020-04-28 19:29:47', '2020-04-28 19:29:47'),
-('7', 'grey', '2020-04-28 19:30:02', '2020-04-28 19:30:02'),
-('8', 'cat', '2020-04-28 19:33:52', '2020-04-28 19:33:52'),
-('9', 'cute', '2020-04-28 19:33:52', '2020-04-28 19:33:52'),
-('10', 'love', '2020-04-28 19:33:52', '2020-04-28 19:33:52'),
-('11', 'dog', '2020-04-28 19:35:06', '2020-04-28 19:35:06');
 

@@ -24,9 +24,10 @@ type Image struct {
 	Type        string             `json:"type,omitempty"`
 	CreatedAt   time.Time          `json:"created_at"`
 	UpdatedAt   time.Time          `json:"updated_at"`
-	CategoryID  int64              `json:"category_id"`
-	Category    *category.Category `json:"category"`
-	Tags        []*tag.Tag         `json:"tags"`
+	CategoryID  int64              `json:"category_id,omitempty"`
+	Category    *category.Category `json:"category,omitempty"`
+	TagsNames   []string           `json:"tags"`
+	Tags        []*tag.Tag         `json:"-"`
 }
 
 // Validate : interface for JSON backend validation
@@ -35,6 +36,11 @@ func (i *Image) Validate() error {
 	if i.Name == "" {
 		return fmt.Errorf("name cannot be empty")
 	}
+
+	if len(i.Name) > 255 {
+		return fmt.Errorf("name cannot be longer than 255 characters")
+	}
+
 	return nil
 }
 
@@ -71,7 +77,7 @@ const filterByTag filterName = "tag"
 const filterByCategory filterName = "category"
 
 // retrieveAllImages stored in db
-func (repository *Repository) retrieveAllImages(filters map[filterName]interface{}) ([]*Image, error) {
+func (repository *Repository) retrieveAllImages(filters map[filterName]interface{}, db *sql.DB) ([]*Image, error) {
 
 	queryFilters := make([]string, 0)
 	queryArgs := make([]interface{}, 0)
@@ -81,12 +87,13 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 
 	var id, categoryID int64
 	var name, slug, description, typeExt, categoryName, categoryDescription, tagName string
-	var createdAt, updatedAt time.Time
+	var createdAt, updatedAt, categCreatedAt, categUpdatedAt time.Time
 
 	scan = append(scan, &id, &name, &slug, &description, &typeExt, &createdAt, &updatedAt, &categoryID)
 
 	queryFields := []string{
-		"i.id", "i.name", "i.slug", "i.description", "i.type", "i.created_at", "i.updated_at", "i.category_id",
+		"i.id", "i.name", "i.slug", "i.description", "i.type", "i.created_at", "i.updated_at",
+		"i.category_id",
 	}
 
 	// Filtering images by date
@@ -101,14 +108,15 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 		}
 	}
 
+	queryJoins = append(queryJoins, "INNER JOIN category c ON c.id = i.category_id")
+	queryFields = append(queryFields, "c.name AS category_name", "c.description AS"+
+		" category_description, c.created_at, c.updated_at")
+	scan = append(scan, &categoryName, &categoryDescription, &categCreatedAt, &categUpdatedAt)
+
 	if v, ok := filters[filterByCategory]; ok {
 		if vv, ok := v.(int64); ok {
 			queryFilters = append(queryFilters, "i.category_id = ?")
 			queryArgs = append(queryArgs, vv)
-			queryJoins = append(queryJoins, "INNER JOIN category c ON c.id = i.category_id")
-			queryFields = append(queryFields, "c.name AS category_name", "c.description AS"+
-				" category_description")
-			scan = append(scan, &categoryName, &categoryDescription)
 		}
 	}
 
@@ -123,8 +131,8 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 		}
 	}
 
-	query := fmt.Sprintf("SELECT %s FROM image i %s",
-		strings.Join(queryFields, ", "), strings.Join(queryJoins, "\n"))
+	query := fmt.Sprintf("SELECT %s FROM image i %s", strings.Join(queryFields, ", "),
+		strings.Join(queryJoins, "\n"))
 
 	if len(queryFilters) > 0 {
 		query += fmt.Sprintf("\nWHERE %s", strings.Join(queryFilters, "\nAND "))
@@ -157,18 +165,22 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 			CreatedAt:   createdAt,
 			UpdatedAt:   updatedAt,
 			CategoryID:  categoryID,
-		}
-
-		if categoryName != "" {
-			image.Category = &category.Category{
+			Category: &category.Category{
 				Name:        categoryName,
 				Description: categoryDescription,
-			}
+				CreatedAt:   categCreatedAt,
+				UpdatedAt:   categUpdatedAt,
+			},
 		}
 
-		if tagName != "" {
-			image.Tags = []*tag.Tag{{Name: tagName}}
+		tagRepository := tag.Repository{Conn: db}
+
+		tags, err := tagRepository.GetAllTagsByImageID(id)
+		if err != nil {
+			return nil, fmt.Errorf("could not get tags : %v", err)
 		}
+
+		image.TagsNames = tags
 
 		images = append(images, &image)
 	}
