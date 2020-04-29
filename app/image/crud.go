@@ -87,12 +87,13 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 
 	var id, categoryID int64
 	var name, slug, description, typeExt, categoryName, categoryDescription, tagName string
-	var createdAt, updatedAt time.Time
+	var createdAt, updatedAt, categCreatedAt, categUpdatedAt time.Time
 
 	scan = append(scan, &id, &name, &slug, &description, &typeExt, &createdAt, &updatedAt, &categoryID)
 
 	queryFields := []string{
-		"i.id", "i.name", "i.slug", "i.description", "i.type", "i.created_at", "i.updated_at", "i.category_id",
+		"i.id", "i.name", "i.slug", "i.description", "i.type", "i.created_at", "i.updated_at", 
+		"i.category_id",
 	}
 
 	// Filtering images by date
@@ -107,14 +108,15 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 		}
 	}
 
+	queryJoins = append(queryJoins, "INNER JOIN category c ON c.id = i.category_id")
+	queryFields = append(queryFields, "c.name AS category_name", "c.description AS"+
+		" category_description, c.created_at, c.updated_at")
+	scan = append(scan, &categoryName, &categoryDescription, &categCreatedAt, &categUpdatedAt)
+
 	if v, ok := filters[filterByCategory]; ok {
 		if vv, ok := v.(int64); ok {
 			queryFilters = append(queryFilters, "i.category_id = ?")
 			queryArgs = append(queryArgs, vv)
-			queryJoins = append(queryJoins, "INNER JOIN category c ON c.id = i.category_id")
-			queryFields = append(queryFields, "c.name AS category_name", "c.description AS"+
-				" category_description")
-			scan = append(scan, &categoryName, &categoryDescription)
 		}
 	}
 
@@ -165,6 +167,12 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 			CreatedAt:   createdAt,
 			UpdatedAt:   updatedAt,
 			CategoryID:  categoryID,
+			Category: &category.Category{
+				Name:        categoryName,
+				Description: categoryDescription,
+				CreatedAt: categCreatedAt,
+				UpdatedAt: categUpdatedAt,
+			},
 		}
 
 		tagRepository := tag.Repository{Conn: db}
