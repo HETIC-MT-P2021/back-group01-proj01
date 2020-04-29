@@ -6,7 +6,6 @@ import (
 	"image_gallery/category"
 	"image_gallery/helpers"
 	"image_gallery/tag"
-	"log"
 	"strings"
 	"time"
 )
@@ -141,8 +140,6 @@ func (repository *Repository) retrieveAllImages(filters map[filterName]interface
 	if len(queryOrders) > 0 {
 		query += fmt.Sprintf("\nORDER BY %s", strings.Join(queryOrders, ", "))
 	}
-
-	log.Printf("query : %s", query)
 
 	rows, err := repository.Conn.Query(query, queryArgs...)
 	if err != nil {
